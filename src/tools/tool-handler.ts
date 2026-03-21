@@ -14,6 +14,7 @@ import {
   WorksheetHandlers,
   FormattingHandlers,
   CommentDataHandlers,
+  AdvancedDataHandlers,
   SystemHandlers
 } from './handlers/index.js';
 
@@ -25,6 +26,7 @@ export class ToolHandler {
   private worksheetHandlers: WorksheetHandlers;
   private formattingHandlers: FormattingHandlers;
   private commentDataHandlers: CommentDataHandlers;
+  private advancedDataHandlers: AdvancedDataHandlers;
   private systemHandlers: SystemHandlers;
 
   constructor(
@@ -39,6 +41,7 @@ export class ToolHandler {
     this.worksheetHandlers = new WorksheetHandlers(excelService);
     this.formattingHandlers = new FormattingHandlers(excelService);
     this.commentDataHandlers = new CommentDataHandlers(excelService);
+    this.advancedDataHandlers = new AdvancedDataHandlers(excelService);
     this.systemHandlers = new SystemHandlers(excelService, permissionChecker, logger);
   }
 
@@ -162,6 +165,16 @@ export class ToolHandler {
           return await this.commentDataHandlers.handleAddHyperlink(args);
         case 'excel_add_data_validation':
           return await this.commentDataHandlers.handleAddDataValidation(args);
+
+        // Advanced data operations
+        case 'excel_find_duplicates':
+          return await this.advancedDataHandlers.handleFindDuplicates(args);
+        case 'excel_count_unique_values':
+          return await this.advancedDataHandlers.handleCountUniqueValues(args);
+        case 'excel_highlight_duplicates':
+          return await this.advancedDataHandlers.handleHighlightDuplicates(args);
+        case 'excel_get_duplicate_info':
+          return await this.advancedDataHandlers.handleGetDuplicateInfo(args);
 
         // System operations
         case 'excel_health_check':

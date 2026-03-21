@@ -1,11 +1,135 @@
 /**
  * Advanced Data Tool Definitions
- * Single Responsibility: Advanced data operations like pivot, import/export
+ * Single Responsibility: Advanced data operations like pivot, import/export, and duplicate detection
  */
 
 import { ToolDefinition } from '../../types/index.js';
 
 export const ADVANCED_DATA_TOOLS: ToolDefinition[] = [
+  {
+    name: 'excel_find_duplicates',
+    description: 'Find duplicate values in a range',
+    parameters: [
+      {
+        name: 'filename',
+        type: 'string',
+        description: 'Name of the opened workbook',
+        required: true,
+      },
+      {
+        name: 'worksheet',
+        type: 'string',
+        description: 'Name of the worksheet',
+        required: true,
+      },
+      {
+        name: 'startCell',
+        type: 'string',
+        description: 'Start cell of range (e.g., A1)',
+        required: true,
+      },
+      {
+        name: 'endCell',
+        type: 'string',
+        description: 'End cell of range (e.g., D10)',
+        required: true,
+      },
+    ],
+    requiredPermissions: ['read'],
+  },
+  {
+    name: 'excel_count_unique_values',
+    description: 'Count unique and duplicate values in a range',
+    parameters: [
+      {
+        name: 'filename',
+        type: 'string',
+        description: 'Name of the opened workbook',
+        required: true,
+      },
+      {
+        name: 'worksheet',
+        type: 'string',
+        description: 'Name of the worksheet',
+        required: true,
+      },
+      {
+        name: 'startCell',
+        type: 'string',
+        description: 'Start cell of range (e.g., A1)',
+        required: true,
+      },
+      {
+        name: 'endCell',
+        type: 'string',
+        description: 'End cell of range (e.g., D10)',
+        required: true,
+      },
+    ],
+    requiredPermissions: ['read'],
+  },
+  {
+    name: 'excel_highlight_duplicates',
+    description: 'Highlight duplicate values in a range with color',
+    parameters: [
+      {
+        name: 'filename',
+        type: 'string',
+        description: 'Name of the opened workbook',
+        required: true,
+      },
+      {
+        name: 'worksheet',
+        type: 'string',
+        description: 'Name of the worksheet',
+        required: true,
+      },
+      {
+        name: 'startCell',
+        type: 'string',
+        description: 'Start cell of range (e.g., A1)',
+        required: true,
+      },
+      {
+        name: 'endCell',
+        type: 'string',
+        description: 'End cell of range (e.g., D10)',
+        required: true,
+      },
+      {
+        name: 'color',
+        type: 'string',
+        description: 'Highlight color in hex format (e.g., FFFF0000 for red)',
+        required: false,
+      },
+    ],
+    requiredPermissions: ['write'],
+  },
+  {
+    name: 'excel_get_duplicate_info',
+    description: 'Get detailed duplicate information for a specific column',
+    parameters: [
+      {
+        name: 'filename',
+        type: 'string',
+        description: 'Name of the opened workbook',
+        required: true,
+      },
+      {
+        name: 'worksheet',
+        type: 'string',
+        description: 'Name of the worksheet',
+        required: true,
+      },
+      {
+        name: 'column',
+        type: 'string',
+        description: 'Column letter (e.g., A, B, C)',
+        required: true,
+      },
+    ],
+    requiredPermissions: ['read'],
+  },
   {
     name: 'excel_import_csv',
     description: 'Import CSV data into worksheet',
