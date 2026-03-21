@@ -115,12 +115,13 @@ export class SystemHandlers extends BaseHandler {
 
     // Check file system
     try {
-      const tmpDir = os.tmpdir();
-      const testFile = `${tmpDir}/.excel-mcp-health-check-${Date.now()}`;
+      const checkDir = this.getFilesystemCheckDir();
+      const testFile = `${checkDir}/.excel-mcp-health-check-${Date.now()}`;
       require('fs').writeFileSync(testFile, 'test');
       require('fs').unlinkSync(testFile);
       dependencies.filesystem = 'ok';
     } catch (error) {
+      this.logger.warn('Filesystem dependency check failed', { error: error instanceof Error ? error.message : String(error), checkDir: this.getFilesystemCheckDir() });
       dependencies.filesystem = 'error';
     }
 
@@ -167,8 +168,17 @@ export class SystemHandlers extends BaseHandler {
 
     // Test permission checker
     try {
-      this.permissionChecker.checkPathAccess('/tmp/test', 'read');
-      tests.permissionChecker = 'pass';
+      const permissionTestPath = this.getPermissionCheckPath();
+      const pathResult = this.permissionChecker.isPathAllowed(permissionTestPath);
+      if (!pathResult.success) {
+        this.logger.warn('Permission checker health check path not allowed', {
+          path: permissionTestPath,
+          error: pathResult.error,
+        });
+        tests.permissionChecker = 'fail';
+      } else {
+        tests.permissionChecker = 'pass';
+      }
     } catch (error) {
       tests.permissionChecker = 'fail';
     }
@@ -199,6 +209,33 @@ export class SystemHandlers extends BaseHandler {
     }
 
     return tests;
+  }
+
+  /**
+   * Determine a path to validate permission checker logic for health check
+   */
+  private getFilesystemCheckDir(): string {
+    const permissions = this.permissionChecker.getConfig();
+    if (permissions.allowedPaths?.length > 0) {
+      const candidate = permissions.allowedPaths[0];
+      if (candidate.endsWith('*')) {
+        return candidate.slice(0, -1).replace(/\/$/, '') || process.cwd();
+      }
+      return candidate;
+    }
+    return os.tmpdir();
+  }
+
+  private getPermissionCheckPath(): string {
+    const permissions = this.permissionChecker.getConfig();
+    if (permissions.allowedPaths?.length > 0) {
+      const candidate = permissions.allowedPaths[0];
+      if (candidate.endsWith('*')) {
+        return candidate.slice(0, -1);
+      }
+      return candidate;
+    }
+    return os.tmpdir();
   }
 
   /**

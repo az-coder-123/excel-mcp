@@ -28,6 +28,8 @@ npm run build
 }
 ```
 
+> Note: If `MCP_ALLOWED_PATHS` is restricted to the project directory (e.g. `/path/to/excel-mcp/*`), the health check might report `degraded` if `/tmp` is outside that scope. In this update, the server first attempts the permission check using a path from `allowedPaths` and falls back to `/tmp` only when no allowed paths are configured.
+
 ### Open VS Code settings:
 - `Cmd+,` (Mac) or `Ctrl+,` (Windows/Linux)
 - Search for "MCP" or "Copilot"
