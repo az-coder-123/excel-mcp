@@ -15,6 +15,7 @@ import {
   FormattingHandlers,
   CommentDataHandlers,
   AdvancedDataHandlers,
+  AnalysisHandlers,
   SystemHandlers
 } from './handlers/index.js';
 
@@ -27,6 +28,7 @@ export class ToolHandler {
   private formattingHandlers: FormattingHandlers;
   private commentDataHandlers: CommentDataHandlers;
   private advancedDataHandlers: AdvancedDataHandlers;
+  private analysisHandlers: AnalysisHandlers;
   private systemHandlers: SystemHandlers;
 
   constructor(
@@ -42,6 +44,7 @@ export class ToolHandler {
     this.formattingHandlers = new FormattingHandlers(excelService);
     this.commentDataHandlers = new CommentDataHandlers(excelService);
     this.advancedDataHandlers = new AdvancedDataHandlers(excelService);
+    this.analysisHandlers = new AnalysisHandlers(excelService['activeWorkbooks']);
     this.systemHandlers = new SystemHandlers(excelService, permissionChecker, logger);
   }
 
@@ -175,6 +178,64 @@ export class ToolHandler {
           return await this.advancedDataHandlers.handleHighlightDuplicates(args);
         case 'excel_get_duplicate_info':
           return await this.advancedDataHandlers.handleGetDuplicateInfo(args);
+
+        // Analysis operations
+        case 'excel_get_column_stats':
+          return await this.analysisHandlers.getColumnStats(
+            args.filename as string,
+            args.worksheet as string,
+            args.column as string,
+            args.hasHeader as boolean ?? true
+          );
+        case 'excel_filter_data':
+          return await this.analysisHandlers.filterData(
+            args.filename as string,
+            args.worksheet as string,
+            args.startCell as string,
+            args.endCell as string,
+            args.filters as any[],
+            args.hasHeader as boolean ?? true
+          );
+        case 'excel_group_aggregate':
+          return await this.analysisHandlers.groupAggregate(
+            args.filename as string,
+            args.worksheet as string,
+            args.startCell as string,
+            args.endCell as string,
+            args.groupByColumn as string,
+            args.aggregateColumn as string,
+            args.operation as string,
+            args.hasHeader as boolean ?? true
+          );
+        case 'excel_profile_data':
+          return await this.analysisHandlers.profileData(
+            args.filename as string,
+            args.worksheet as string,
+            args.startCell as string,
+            args.endCell as string,
+            args.hasHeader as boolean ?? true
+          );
+        case 'excel_search':
+          return await this.analysisHandlers.search(
+            args.filename as string,
+            args.worksheet as string,
+            args.searchQuery as string,
+            args.searchType as string ?? 'contains',
+            args.columnRange as string ?? '',
+            args.matchCase as boolean ?? false,
+            args.maxResults as number ?? 100
+          );
+        case 'excel_compare_ranges':
+          return await this.analysisHandlers.compareRanges(
+            args.filename as string,
+            args.worksheet1 as string,
+            args.range1Start as string,
+            args.range1End as string,
+            args.worksheet2 as string ?? '',
+            args.range2Start as string,
+            args.range2End as string,
+            args.compareType as string ?? 'values'
+          );
 
         // System operations
         case 'excel_health_check':

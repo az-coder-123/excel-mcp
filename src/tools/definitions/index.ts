@@ -13,6 +13,7 @@ import { CHART_TOOLS } from './chart-tools.js';
 import { CONDITIONAL_FORMATTING_TOOLS } from './conditional-formatting-tools.js';
 import { PROTECTION_TOOLS } from './protection-tools.js';
 import { ADVANCED_DATA_TOOLS } from './advanced-data-tools.js';
+import { ANALYSIS_TOOLS } from './analysis-tools.js';
 import { SYSTEM_TOOLS } from './system-tools.js';
 
 /**
@@ -28,6 +29,7 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
   ...CONDITIONAL_FORMATTING_TOOLS,
   ...PROTECTION_TOOLS,
   ...ADVANCED_DATA_TOOLS,
+  ...ANALYSIS_TOOLS,
   ...SYSTEM_TOOLS,
 ];
 
@@ -41,4 +43,5 @@ export { CHART_TOOLS } from './chart-tools.js';
 export { CONDITIONAL_FORMATTING_TOOLS } from './conditional-formatting-tools.js';
 export { PROTECTION_TOOLS } from './protection-tools.js';
 export { ADVANCED_DATA_TOOLS } from './advanced-data-tools.js';
+export { ANALYSIS_TOOLS } from './analysis-tools.js';
 export { SYSTEM_TOOLS } from './system-tools.js';
