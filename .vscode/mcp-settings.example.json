@@ -1,0 +1,13 @@
+{
+  "github.copilot.chat.experimental.mcpServers": {
+    "excel-mcp": {
+      "command": "node",
+      "args": ["${workspaceFolder}/dist/index.js"],
+      "env": {
+        "MCP_LOG_LEVEL": "info",
+        "MCP_ALLOWED_PATHS": "${workspaceFolder}",
+        "MCP_DENIED_PATHS": "/etc/*,/sys/*,/proc/*"
+      }
+    }
+  }
+}

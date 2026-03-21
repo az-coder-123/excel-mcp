@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "excel-mcp": {
+      "command": "node",
+      "args": ["/absolute/path/to/excel-mcp/dist/index.js"],
+      "env": {
+        "MCP_LOG_LEVEL": "info",
+        "MCP_ALLOWED_PATHS": "/workspace",
+        "MCP_DENIED_PATHS": "/etc/*,/sys/*,/proc/*"
+      }
+    }
+  }
+}
