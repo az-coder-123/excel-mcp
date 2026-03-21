@@ -1,58 +1,47 @@
-# Excel MCP Server - Hướng dẫn cài đặt và kết nối
+# Excel MCP Server - Setup Guide
 
-## Tổng quan
+## Overview
 
-Excel MCP Server là một Model Context Protocol server cho phép tương tác với file Excel thông qua các công cụ AI như Cline và GitHub Copilot.
+Excel MCP Server is a Model Context Protocol server that enables interaction with Excel files through AI tools like Cline and GitHub Copilot.
 
-## Đã cài đặt sẵn
+## Prerequisites
 
-✅ Server đã được build trong folder `dist/`
-✅ Dependencies đã được cài đặt
-✅ Server đang chạy trong background
+- Node.js (v16 or higher)
+- npm or yarn
+- Access to VS Code with Cline extension or GitHub Copilot
 
-## Cấu hình cho Cline
+## Installation
 
-### 1. Tạo file cấu hình
+### 1. Clone the Repository
 
-File cấu hình đã được tạo tại `.cline/mcp_servers.json` với nội dung:
-
-```json
-{
-  "mcpServers": {
-    "excel-mcp": {
-      "command": "node",
-      "args": ["/Volumes/Macintosh HD - Data/projects/excel-mcp/dist/index.js"],
-      "env": {
-        "MCP_LOG_LEVEL": "info",
-        "MCP_ALLOWED_PATHS": "/Volumes/Macintosh HD - Data/projects/excel-mcp",
-        "MCP_DENIED_PATHS": "/etc/*,/sys/*,/proc/*,/Volumes/Macintosh HD - Data/projects/excel-mcp/node_modules/*"
-      }
-    }
-  }
-}
+```bash
+git clone https://github.com/az-coder-123/excel-mcp.git
+cd excel-mcp
 ```
 
-### 2. Cấu hình đã được thiết lập
+### 2. Install Dependencies
 
-- **Server Path**: `/Volumes/Macintosh HD - Data/projects/excel-mcp/dist/index.js`
-- **Log Level**: info
-- **Allowed Paths**: Chỉ cho phép truy cập vào project directory
-- **Denied Paths**: Chặn truy cập vào các thư mục hệ thống và node_modules
-
-## Kiểm tra kết nối
-
-Server đã được test và đang hoạt động:
-
-```
-✅ MCP Server is responding!
-✅ Server initialized and listening on stdio
-✅ Tool calls are being received
+```bash
+npm install
 ```
 
-## Các công cụ (Tools) có sẵn
+### 3. Build the Server
 
-### 1. Health Check
-Kiểm tra trạng thái server:
+```bash
+npm run build
+```
+
+This will compile the TypeScript code and create the `dist/` folder with the built server.
+
+## Quick Reference
+
+### Build server:
+```bash
+cd "/path/to/excel-mcp"
+npm run build
+```
+
+### Check server health:
 ```json
 {
   "name": "excel_health_check",
@@ -60,51 +49,62 @@ Kiểm tra trạng thái server:
 }
 ```
 
+## Available Tools
+
+### 1. System Operations
+- `excel_health_check` - Check server status and configuration
+
 ### 2. Workbook Operations
-- `excel_open_workbook` - Mở file Excel
-- `excel_create_workbook` - Tạo workbook mới
-- `excel_save_workbook` - Lưu workbook
-- `excel_close_workbook` - Đóng workbook
-- `excel_list_worksheets` - Liệt kê tất cả worksheets
+- `excel_open_workbook` - Open an Excel file
+- `excel_create_workbook` - Create a new workbook
+- `excel_save_workbook` - Save workbook to disk
+- `excel_close_workbook` - Close an opened workbook
+- `excel_list_worksheets` - List all worksheets
 
 ### 3. Cell Operations
-- `excel_read_cell` - Đọc giá trị một ô
-- `excel_write_cell` - Ghi giá trị vào một ô
-- `excel_read_range` - Đọc nhiều ô
-- `excel_write_range` - Ghi nhiều ô
-- `excel_get_cell_info` - Lấy thông tin chi tiết ô
+- `excel_read_cell` - Read value from a specific cell
+- `excel_write_cell` - Write value to a specific cell
+- `excel_read_range` - Read values from a range of cells
+- `excel_write_batch` - Write multiple values at once
+- `excel_get_cell_info` - Get detailed cell information
 
 ### 4. Worksheet Operations
-- `excel_add_worksheet` - Thêm worksheet mới
-- `excel_delete_worksheet` - Xóa worksheet
-- `excel_rename_worksheet` - Đổi tên worksheet
+- `excel_add_worksheet` - Add a new worksheet
+- `excel_delete_worksheet` - Delete a worksheet
+- `excel_rename_worksheet` - Rename a worksheet
+- `excel_copy_worksheet` - Copy a worksheet
 
 ### 5. Formatting Operations
-- `excel_set_cell_format` - Định dạng ô
-- `excel_set_cell_border` - Thêm border
-- `excel_set_cell_fill` - Đổ màu ô
-- `excel_set_cell_font` - Định dạng font
+- `excel_set_cell_format` - Apply formatting to cells
+- `excel_set_range_format` - Apply formatting to a range
+- `excel_auto_fit_columns` - Auto-fit column widths
+- `excel_set_column_width` - Set specific column width
+- `excel_set_row_height` - Set specific row height
 
-## Ví dụ sử dụng
+### 6. Advanced Operations
+- `excel_add_chart` - Create charts
+- `excel_add_table` - Create Excel tables
+- `excel_add_filter` - Add auto-filter
+- `excel_merge_cells` - Merge cells
+- `excel_add_data_validation` - Add data validation rules
+- `excel_add_conditional_format` - Add conditional formatting
 
-### Đọc file Excel có sẵn
+### 7. Data Analysis
+- `excel_filter_data` - Filter data based on conditions
+- `excel_group_aggregate` - Group and aggregate data
+- `excel_find_duplicates` - Find duplicate values
+- `excel_profile_data` - Analyze data profile
+- `excel_search` - Advanced search in worksheet
 
-File mẫu: `employees_full_02.xlsx`
+## Usage Examples
+
+### Reading an Excel File
 
 ```json
 {
   "name": "excel_open_workbook",
   "arguments": {
-    "filePath": "/Volumes/Macintosh HD - Data/projects/excel-mcp/employees_full_02.xlsx"
-  }
-}
-```
-
-```json
-{
-  "name": "excel_list_worksheets",
-  "arguments": {
-    "filename": "employees_full_02.xlsx"
+    "filePath": "/path/to/file.xlsx"
   }
 }
 ```
@@ -113,7 +113,7 @@ File mẫu: `employees_full_02.xlsx`
 {
   "name": "excel_read_range",
   "arguments": {
-    "filename": "employees_full_02.xlsx",
+    "filename": "file.xlsx",
     "worksheet": "Sheet1",
     "startCell": "A1",
     "endCell": "C10"
@@ -121,14 +121,14 @@ File mẫu: `employees_full_02.xlsx`
 }
 ```
 
-### Tạo và chỉnh sửa file Excel mới
+### Creating a New Workbook
 
 ```json
 {
   "name": "excel_create_workbook",
   "arguments": {
     "filename": "report",
-    "outputPath": "/Volumes/Macintosh HD - Data/projects/excel-mcp"
+    "outputPath": "/path/to/output"
   }
 }
 ```
@@ -145,88 +145,72 @@ File mẫu: `employees_full_02.xlsx`
 }
 ```
 
-```json
-{
-  "name": "excel_save_workbook",
-  "arguments": {
-    "filename": "report.xlsx",
-    "outputPath": "/Volumes/Macintosh HD - Data/projects/excel-mcp/report-final.xlsx"
-  }
-}
-```
-
-## Cấu hình nâng cao
-
-### Thay đổi quyền truy cập
-
-Sửa file `.cline/mcp_servers.json`:
-
-```json
-{
-  "mcpServers": {
-    "excel-mcp": {
-      "command": "node",
-      "args": ["/Volumes/Macintosh HD - Data/projects/excel-mcp/dist/index.js"],
-      "env": {
-        "MCP_LOG_LEVEL": "debug",
-        "MCP_ALLOWED_PATHS": "/Users/yourname/Documents,/workspace",
-        "MCP_DENIED_PATHS": "/etc/*,/sys/*,/proc/*",
-        "MCP_MAX_FILE_SIZE": "104857600"
-      }
-    }
-  }
-}
-```
+## Configuration
 
 ### Environment Variables
 
-| Variable | Mặc định | Mô tả |
-|----------|----------|-------|
-| `MCP_LOG_LEVEL` | info | debug, info, warn, error |
-| `MCP_ALLOWED_PATHS` | Tất cả | Danh sách đường dẫn được phép |
-| `MCP_DENIED_PATHS` | System paths | Danh sách đường dẫn bị chặn |
-| `MCP_MAX_FILE_SIZE` | 52428800 | Kích thước file tối đa (bytes) |
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `MCP_LOG_LEVEL` | info | Log level: debug, info, warn, error |
+| `MCP_ALLOWED_PATHS` | All paths | Comma-separated list of allowed paths |
+| `MCP_DENIED_PATHS` | System paths | Comma-separated list of denied paths |
+| `MCP_MAX_FILE_SIZE` | 52428800 | Maximum file size in bytes (default 50MB) |
 
-## Khắc phục sự cố
+## Security
 
-### Server không phản hồi
+The server implements several security measures:
 
-1. Kiểm tra server đang chạy:
+- **Path-based access control**: Only allows access to specified paths
+- **Denied paths**: Blocks access to system directories
+- **File size limits**: Prevents processing of oversized files
+- **Permission checks**: Validates operations before execution
+
+For detailed security information, see [SECURITY.md](./SECURITY.md).
+
+## Troubleshooting
+
+### Server Not Responding
+
+1. Check if the server is running:
 ```bash
 ps aux | grep "node dist/index.js"
 ```
 
-2. Khởi động lại server:
+2. Rebuild the project:
 ```bash
-npm run start
+npm run build
 ```
 
-### Lỗi quyền truy cập
+### Access Denied Errors
 
-1. Kiểm tra cấu hình trong `.cline/mcp_servers.json`
-2. Đảm bảo file Excel nằm trong `MCP_ALLOWED_PATHS`
-3. Đảm bảo file không nằm trong `MCP_DENIED_PATHS`
+1. Verify file paths in configuration
+2. Ensure files are in allowed paths
+3. Check denied paths configuration
 
-### Lỗi "Workbook not opened"
+### Workbook Not Opened
 
-1. Đảm bảo đã gọi `excel_open_workbook` trước
-2. Kiểm tra đường dẫn file chính xác
-3. Xác định file không bị hỏng
+1. Ensure `excel_open_workbook` is called first
+2. Verify file path is correct
+3. Check file is not corrupted
 
-## Tài liệu tham khảo
+For more troubleshooting information, see [TROUBLESHOOTING.md](./TROUBLESHOOTING.md).
 
-- [API Documentation](./API.md)
-- [Architecture](./ARCHITECTURE.md)
-- [Security Guide](./SECURITY.md)
-- [Troubleshooting](./TROUBLESHOOTING.md)
+## Documentation
 
-## Hỗ trợ
+- [Cline Setup Guide](./CLINE_SETUP.md) - Setup instructions for Cline
+- [GitHub Copilot Setup Guide](./GITHUB_COPILOT_SETUP.md) - Setup instructions for GitHub Copilot
+- [API Documentation](./API.md) - Complete API reference
+- [Architecture](./ARCHITECTURE.md) - System architecture and design
+- [Security Guide](./SECURITY.md) - Security best practices
+- [Troubleshooting](./TROUBLESHOOTING.md) - Common issues and solutions
 
-Nếu gặp vấn đề, hãy kiểm tra:
-1. Logs trong terminal khi server chạy
-2. Console trong VS Code
-3. File [TROUBLESHOOTING.md](./TROUBLESHOOTING.md)
+## Support
 
----
+If you encounter issues:
+1. Check the terminal logs when server is running
+2. Check VS Code console for errors
+3. Review [TROUBLESHOOTING.md](./TROUBLESHOOTING.md)
 
-**Trạng thái hiện tại**: ✅ Đã kết nối và hoạt động bình thường
+## License
+
+See LICENSE file for details.
