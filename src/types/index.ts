@@ -64,7 +64,7 @@ export interface ToolParameter {
   required: boolean;
   enum?: string[];
   items?: ToolParameter;
-  properties?: Record<string, ToolParameter>;
+  properties?: Record<string, { type: string; description?: string }>;
 }
 
 export interface ToolDefinition {
