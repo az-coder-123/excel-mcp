@@ -9,6 +9,10 @@ import { CELL_TOOLS } from './cell-tools.js';
 import { WORKSHEET_TOOLS } from './worksheet-tools.js';
 import { FORMATTING_TOOLS } from './formatting-tools.js';
 import { COMMENT_DATA_TOOLS } from './comment-data-tools.js';
+import { CHART_TOOLS } from './chart-tools.js';
+import { CONDITIONAL_FORMATTING_TOOLS } from './conditional-formatting-tools.js';
+import { PROTECTION_TOOLS } from './protection-tools.js';
+import { ADVANCED_DATA_TOOLS } from './advanced-data-tools.js';
 
 /**
  * All Excel MCP tool definitions
@@ -19,6 +23,10 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
   ...WORKSHEET_TOOLS,
   ...FORMATTING_TOOLS,
   ...COMMENT_DATA_TOOLS,
+  ...CHART_TOOLS,
+  ...CONDITIONAL_FORMATTING_TOOLS,
+  ...PROTECTION_TOOLS,
+  ...ADVANCED_DATA_TOOLS,
 ];
 
 // Re-export individual categories for flexibility
@@ -27,3 +35,7 @@ export { CELL_TOOLS } from './cell-tools.js';
 export { WORKSHEET_TOOLS } from './worksheet-tools.js';
 export { FORMATTING_TOOLS } from './formatting-tools.js';
 export { COMMENT_DATA_TOOLS } from './comment-data-tools.js';
+export { CHART_TOOLS } from './chart-tools.js';
+export { CONDITIONAL_FORMATTING_TOOLS } from './conditional-formatting-tools.js';
+export { PROTECTION_TOOLS } from './protection-tools.js';
+export { ADVANCED_DATA_TOOLS } from './advanced-data-tools.js';

@@ -24,9 +24,11 @@ export class ExcelService {
   private structureOperations: ExcelStructureOperations;
   private formatting: ExcelFormatting;
   private activeWorkbooks: Map<string, ExcelJS.Workbook>;
+  private logger: Logger;
 
   constructor(permissionChecker: PermissionChecker, logger: Logger) {
     this.activeWorkbooks = new Map();
+    this.logger = logger;
     this.workbookManager = new ExcelWorkbookManager(permissionChecker, logger, this.activeWorkbooks);
     this.cellOperations = new ExcelCellOperations(permissionChecker, logger, this.activeWorkbooks);
     this.structureOperations = new ExcelStructureOperations(permissionChecker, logger, this.activeWorkbooks);
@@ -195,5 +197,183 @@ export class ExcelService {
 
   public async addHeaderFooter(filename: string, worksheetName: string, header?: string, footer?: string): Promise<OperationResult<void>> {
     return this.formatting.addHeaderFooter(filename, worksheetName, header, footer);
+  }
+
+  // Chart operations
+  // Note: ExcelJS has limited chart support. These methods store chart metadata for reference.
+  // Full chart creation and manipulation requires ExcelJS's native chart API or external libraries.
+  
+  public async addChart(
+    filename: string,
+    worksheetName: string,
+    dataRange: string,
+    chartType: string,
+    targetCell: string,
+    title?: string,
+    width?: number,
+    height?: number
+  ): Promise<OperationResult<{ chartIndex: number }>> {
+    try {
+      const workbook = this.activeWorkbooks.get(filename);
+      if (!workbook) {
+        return { success: false, error: `Workbook "${filename}" not found` };
+      }
+
+      const worksheet = workbook.getWorksheet(worksheetName);
+      if (!worksheet) {
+        return { success: false, error: `Worksheet "${worksheetName}" not found` };
+      }
+
+      // Validate data range format
+      const rangeMatch = dataRange.match(/^([A-Z]+)(\d+):([A-Z]+)(\d+)$/);
+      if (!rangeMatch) {
+        return { success: false, error: `Invalid data range format: ${dataRange}. Expected format: A1:D10` };
+      }
+
+      // Validate target cell format
+      const targetMatch = targetCell.match(/^([A-Z]+)(\d+)$/);
+      if (!targetMatch) {
+        return { success: false, error: `Invalid target cell format: ${targetCell}. Expected format: A1` };
+      }
+
+      // Store chart metadata for reference
+      // Note: ExcelJS chart creation is limited, metadata is stored for future implementation
+      const charts = (worksheet as any).__charts || [];
+      const chartIndex = charts.push({
+        type: chartType,
+        dataRange,
+        targetCell,
+        title: title || 'Chart',
+        width: width || 400,
+        height: height || 300,
+      });
+
+      (worksheet as any).__charts = charts;
+
+      this.logger.info(`Chart metadata stored for ${filename}!${worksheetName} at index ${chartIndex - 1}`);
+      return { success: true, data: { chartIndex: chartIndex - 1 } };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      this.logger.error(`Failed to add chart: ${errorMessage}`);
+      return { success: false, error: `Failed to add chart: ${errorMessage}` };
+    }
+  }
+
+  public async updateChart(
+    filename: string,
+    worksheetName: string,
+    chartIndex: number,
+    dataRange: string
+  ): Promise<OperationResult<void>> {
+    try {
+      const workbook = this.activeWorkbooks.get(filename);
+      if (!workbook) {
+        return { success: false, error: `Workbook "${filename}" not found` };
+      }
+
+      const worksheet = workbook.getWorksheet(worksheetName);
+      if (!worksheet) {
+        return { success: false, error: `Worksheet "${worksheetName}" not found` };
+      }
+
+      // Get stored chart metadata
+      const charts = (worksheet as any).__charts;
+      if (!charts || !Array.isArray(charts)) {
+        return { success: false, error: 'No charts found in worksheet' };
+      }
+
+      if (chartIndex < 0 || chartIndex >= charts.length) {
+        return { success: false, error: `Chart index ${chartIndex} out of range` };
+      }
+
+      // Validate data range format
+      const rangeMatch = dataRange.match(/^([A-Z]+)(\d+):([A-Z]+)(\d+)$/);
+      if (!rangeMatch) {
+        return { success: false, error: `Invalid data range format: ${dataRange}. Expected format: A1:D10` };
+      }
+
+      // Update chart metadata
+      charts[chartIndex].dataRange = dataRange;
+
+      this.logger.info(`Updated chart ${chartIndex} in ${filename}!${worksheetName}`);
+      return { success: true };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      this.logger.error(`Failed to update chart: ${errorMessage}`);
+      return { success: false, error: `Failed to update chart: ${errorMessage}` };
+    }
+  }
+
+  public async deleteChart(
+    filename: string,
+    worksheetName: string,
+    chartIndex: number
+  ): Promise<OperationResult<void>> {
+    try {
+      const workbook = this.activeWorkbooks.get(filename);
+      if (!workbook) {
+        return { success: false, error: `Workbook "${filename}" not found` };
+      }
+
+      const worksheet = workbook.getWorksheet(worksheetName);
+      if (!worksheet) {
+        return { success: false, error: `Worksheet "${worksheetName}" not found` };
+      }
+
+      // Get stored chart metadata
+      const charts = (worksheet as any).__charts;
+      if (!charts || !Array.isArray(charts)) {
+        return { success: false, error: 'No charts found in worksheet' };
+      }
+
+      if (chartIndex < 0 || chartIndex >= charts.length) {
+        return { success: false, error: `Chart index ${chartIndex} out of range` };
+      }
+
+      // Remove chart metadata
+      charts.splice(chartIndex, 1);
+
+      this.logger.info(`Deleted chart ${chartIndex} from ${filename}!${worksheetName}`);
+      return { success: true };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      this.logger.error(`Failed to delete chart: ${errorMessage}`);
+      return { success: false, error: `Failed to delete chart: ${errorMessage}` };
+    }
+  }
+
+  public async listCharts(
+    filename: string,
+    worksheetName: string
+  ): Promise<OperationResult<Array<{ index: number; type: string; title: string }>>> {
+    try {
+      const workbook = this.activeWorkbooks.get(filename);
+      if (!workbook) {
+        return { success: false, error: `Workbook "${filename}" not found` };
+      }
+
+      const worksheet = workbook.getWorksheet(worksheetName);
+      if (!worksheet) {
+        return { success: false, error: `Worksheet "${worksheetName}" not found` };
+      }
+
+      // Get stored chart metadata
+      const charts = (worksheet as any).__charts;
+      if (!charts || !Array.isArray(charts)) {
+        return { success: true, data: [] };
+      }
+
+      const chartList = charts.map((chart: any, index: number) => ({
+        index,
+        type: chart.type || 'Unknown',
+        title: chart.title || 'Untitled',
+      }));
+
+      return { success: true, data: chartList };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      this.logger.error(`Failed to list charts: ${errorMessage}`);
+      return { success: false, error: `Failed to list charts: ${errorMessage}` };
+    }
   }
 }
