@@ -85,6 +85,59 @@ Add to your Cline MCP configuration file (`~/.config/cline/mcp_servers.json`):
 
 ## Available Tools
 
+### excel_health_check
+
+Check server health, dependencies, and configuration status. This tool is useful for verifying that the MCP server is running correctly and all systems are operational.
+
+```json
+{
+}
+```
+
+**No parameters required**
+
+**Response Example:**
+```json
+{
+  "status": "healthy",
+  "server": {
+    "name": "excel-mcp",
+    "version": "1.0.0",
+    "nodeVersion": "v18.0.0",
+    "platform": "darwin",
+    "arch": "arm64",
+    "uptime": "5m 32s"
+  },
+  "dependencies": {
+    "exceljs": "ok",
+    "filesystem": "ok",
+    "memory": "ok",
+    "memoryUsage": {
+      "heapUsed": "45MB",
+      "heapTotal": "64MB",
+      "rss": "78MB",
+      "external": "2MB"
+    }
+  },
+  "configuration": {
+    "logLevel": "info",
+    "maxFileSize": 52428800,
+    "maxFileSizeMB": "50MB",
+    "allowedPathsCount": 0,
+    "deniedPathsCount": 4,
+    "allowedExtensions": [".xlsx", ".xls", ".xlsm", ".xlsb"],
+    "permissions": ["read", "write", "delete"]
+  },
+  "tests": {
+    "permissionChecker": "pass",
+    "logger": "pass",
+    "excelOperations": "pass"
+  },
+  "responseTime": "45ms",
+  "timestamp": "2024-03-21T12:34:56.789Z"
+}
+```
+
 ### excel_open_workbook
 
 Open an Excel file for operations.

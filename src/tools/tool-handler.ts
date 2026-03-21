@@ -13,7 +13,8 @@ import {
   CellHandlers,
   WorksheetHandlers,
   FormattingHandlers,
-  CommentDataHandlers
+  CommentDataHandlers,
+  SystemHandlers
 } from './handlers/index.js';
 
 export class ToolHandler {
@@ -24,6 +25,7 @@ export class ToolHandler {
   private worksheetHandlers: WorksheetHandlers;
   private formattingHandlers: FormattingHandlers;
   private commentDataHandlers: CommentDataHandlers;
+  private systemHandlers: SystemHandlers;
 
   constructor(
     excelService: ExcelService,
@@ -37,6 +39,7 @@ export class ToolHandler {
     this.worksheetHandlers = new WorksheetHandlers(excelService);
     this.formattingHandlers = new FormattingHandlers(excelService);
     this.commentDataHandlers = new CommentDataHandlers(excelService);
+    this.systemHandlers = new SystemHandlers(excelService, permissionChecker, logger);
   }
 
   /**
@@ -159,6 +162,10 @@ export class ToolHandler {
           return await this.commentDataHandlers.handleAddHyperlink(args);
         case 'excel_add_data_validation':
           return await this.commentDataHandlers.handleAddDataValidation(args);
+
+        // System operations
+        case 'excel_health_check':
+          return await this.systemHandlers.healthCheck();
 
         default:
           return {
