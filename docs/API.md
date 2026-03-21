@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Excel MCP Server provides 10 tools for Excel operations. All tools follow the MCP protocol specification and return structured responses.
+The Excel MCP Server provides comprehensive tools for Excel operations. All tools follow the MCP protocol specification and return structured responses.
 
 ## Response Format
 
@@ -445,6 +445,47 @@ Closes an opened workbook and frees resources.
 
 ---
 
+### excel_filter_data
+
+Filter data based on multiple conditions. This is a powerful tool for extracting specific records from large datasets.
+
+**Parameters**:
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `filename` | string | Yes | Name of the opened workbook |
+| `worksheet` | string | Yes | Name of the worksheet |
+| `startCell` | string | Yes | Start cell of data range (e.g., A1) |
+| `endCell` | string | Yes | End cell of data range (e.g., D100) |
+| `filters` | array | Yes | Array of filter conditions |
+| `hasHeader` | boolean | No | Whether the first row contains header (default: true) |
+
+**Filter Condition Object**:
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `column` | string | Yes | Column letter (e.g., A, B, C) |
+| `operator` | string | Yes | Comparison operator (see below) |
+| `value` | string | No | Value to compare with (not required for isBlank/isNotBlank) |
+| `matchCase` | boolean | No | Case sensitive comparison (default: false) |
+
+**Supported Operators**:
+
+- `equals` - Exact match
+- `notEquals` - Not equal to value
+- `contains` - Contains the text
+- `notContains` - Does not contain the text
+- `greaterThan` - Greater than (numeric comparison)
+- `lessThan` - Less than (numeric comparison)
+- `greaterThanOrEqual` - Greater than or equal
+- `lessThanOrEqual` - Less than or equal
+- `isBlank` - Cell is empty
+- `isNotBlank` - Cell is not empty
+
+**Returns**: Filtered data array with matching rows.
+
+---
+
 ### excel_get_cell_info
 
 Gets detailed information about a cell, including formulas.
@@ -494,6 +535,422 @@ Gets detailed information about a cell, including formulas.
 - Workbook not opened
 - Worksheet not found
 - Invalid cell address
+
+## Data Filtering Guide
+
+### Introduction
+
+The `excel_filter_data` tool is one of the most powerful tools in the Excel MCP Server. It allows you to filter large datasets based on multiple conditions, making it easy to extract specific records without needing to read the entire file and filter manually.
+
+### Basic Usage Examples
+
+#### Example 1: Filter by Exact Match (Single Condition)
+
+Find all "Quản lý khu vực" (Area Managers) in an employee list:
+
+```javascript
+// First, open the workbook
+await excel_open_workbook({ 
+  filePath: "/tmp/employees_full_02.xlsx" 
+});
+
+// Filter for area managers
+const result = await excel_filter_data({
+  filename: "employees_full_02.xlsx",
+  worksheet: "Sheet1",
+  startCell: "A1",
+  endCell: "N215",
+  filters: [
+    { column: "I", operator: "equals", value: "Quản lý khu vực" }
+  ],
+  hasHeader: true
+});
+
+// Result: Array of rows where column I equals "Quản lý khu vực"
+// Returns header row + all matching data rows
+
+// Don't forget to close the workbook
+await excel_close_workbook({ filename: "employees_full_02.xlsx" });
+```
+
+#### Example 2: Filter by Contains (Text Search)
+
+Find all products containing "Widget":
+
+```javascript
+const result = await excel_filter_data({
+  filename: "products.xlsx",
+  worksheet: "Sheet1",
+  startCell: "A1",
+  endCell: "D1000",
+  filters: [
+    { column: "A", operator: "contains", value: "Widget" }
+  ]
+});
+
+// Returns all rows where column A contains "Widget" anywhere in the text
+```
+
+#### Example 3: Multiple Conditions (AND Logic)
+
+Find products with category "Electronics" AND price > 100:
+
+```javascript
+const result = await excel_filter_data({
+  filename: "products.xlsx",
+  worksheet: "Sheet1",
+  startCell: "A1",
+  endCell: "D1000",
+  filters: [
+    { column: "B", operator: "equals", value: "Electronics" },
+    { column: "C", operator: "greaterThan", value: "100" }
+  ]
+});
+
+// Note: Multiple filters are combined with AND logic
+// Only rows matching ALL conditions will be returned
+```
+
+#### Example 4: Numeric Comparisons
+
+Find orders with amount between 1000 and 5000:
+
+```javascript
+const result = await excel_filter_data({
+  filename: "orders.xlsx",
+  worksheet: "Sheet1",
+  startCell: "A1",
+  endCell: "H500",
+  filters: [
+    { column: "D", operator: "greaterThanOrEqual", value: "1000" },
+    { column: "D", operator: "lessThanOrEqual", value: "5000" }
+  ]
+});
+
+// Returns orders where amount >= 1000 AND amount <= 5000
+```
+
+#### Example 5: Case Sensitive Filter
+
+Find exact "Apple" (not "apple" or "APPLE"):
+
+```javascript
+const result = await excel_filter_data({
+  filename: "fruits.xlsx",
+  worksheet: "Sheet1",
+  startCell: "A1",
+  endCell: "C100",
+  filters: [
+    { column: "A", operator: "equals", value: "Apple", matchCase: true }
+  ]
+});
+
+// Only returns exact "Apple" (case-sensitive)
+```
+
+#### Example 6: Find Non-Empty Cells
+
+Find all records where email is provided:
+
+```javascript
+const result = await excel_filter_data({
+  filename: "contacts.xlsx",
+  worksheet: "Sheet1",
+  startCell: "A1",
+  endCell: "G500",
+  filters: [
+    { column: "E", operator: "isNotBlank" }
+  ]
+});
+
+// Returns all rows where column E has any value
+```
+
+#### Example 7: Find Empty Cells
+
+Find records missing phone numbers:
+
+```javascript
+const result = await excel_filter_data({
+  filename: "contacts.xlsx",
+  worksheet: "Sheet1",
+  startCell: "A1",
+  endCell: "G500",
+  filters: [
+    { column: "F", operator: "isBlank" }
+  ]
+});
+
+// Returns all rows where column F is empty
+```
+
+#### Example 8: Complex Multi-Column Filter
+
+Find employees in "Sales" department with salary >= 50000 and status = "Active":
+
+```javascript
+const result = await excel_filter_data({
+  filename: "employees.xlsx",
+  worksheet: "Sheet1",
+  startCell: "A1",
+  endCell: "J200",
+  filters: [
+    { column: "D", operator: "equals", value: "Sales" },
+    { column: "G", operator: "greaterThanOrEqual", value: "50000" },
+    { column: "H", operator: "equals", value: "Active" }
+  ]
+});
+
+// Only returns employees matching ALL three conditions
+```
+
+#### Example 9: Filter by Text Exclusion
+
+Find all products except those containing "Deprecated":
+
+```javascript
+const result = await excel_filter_data({
+  filename: "products.xlsx",
+  worksheet: "Sheet1",
+  startCell: "A1",
+  endCell: "D1000",
+  filters: [
+    { column: "A", operator: "notContains", value: "Deprecated" }
+  ]
+});
+
+// Returns products that do NOT contain "Deprecated" in column A
+```
+
+#### Example 10: Date Range Filtering (as text)
+
+Find orders from 2024 (assuming dates in column A as text):
+
+```javascript
+const result = await excel_filter_data({
+  filename: "orders.xlsx",
+  worksheet: "Sheet1",
+  startCell: "A1",
+  endCell: "H500",
+  filters: [
+    { column: "A", operator: "greaterThanOrEqual", value: "2024-01-01" },
+    { column: "A", operator: "lessThan", value: "2025-01-01" }
+  ]
+});
+
+// Returns orders from 2024 (date strings are compared lexicographically)
+```
+
+### Common Use Cases
+
+#### Use Case 1: Employee Management
+
+Find all managers in a specific department:
+
+```javascript
+const managers = await excel_filter_data({
+  filename: "employees.xlsx",
+  worksheet: "Employees",
+  startCell: "A1",
+  endCell: "L500",
+  filters: [
+    { column: "C", operator: "equals", value: "Manager" },
+    { column: "B", operator: "equals", value: "Marketing" }
+  ]
+});
+
+// Returns all Marketing department managers
+```
+
+#### Use Case 2: Sales Analysis
+
+Find high-value sales (amount > 10000):
+
+```javascript
+const highValueSales = await excel_filter_data({
+  filename: "sales.xlsx",
+  worksheet: "Q1",
+  startCell: "A1",
+  endCell: "K2000",
+  filters: [
+    { column: "J", operator: "greaterThan", value: "10000" }
+  ]
+});
+
+// Returns all sales over $10,000
+```
+
+#### Use Case 3: Inventory Management
+
+Find products with low stock (quantity < 10):
+
+```javascript
+const lowStock = await excel_filter_data({
+  filename: "inventory.xlsx",
+  worksheet: "Stock",
+  startCell: "A1",
+  endCell: "D500",
+  filters: [
+    { column: "C", operator: "lessThan", value: "10" }
+  ]
+});
+
+// Returns products that need restocking
+```
+
+#### Use Case 4: Customer Service
+
+Find unresolved tickets from VIP customers:
+
+```javascript
+const vipTickets = await excel_filter_data({
+  filename: "tickets.xlsx",
+  worksheet: "Support",
+  startCell: "A1",
+  endCell: "M1000",
+  filters: [
+    { column: "E", operator: "equals", value: "VIP" },
+    { column: "L", operator: "equals", value: "Open" }
+  ]
+});
+
+// Returns open tickets from VIP customers (priority handling)
+```
+
+#### Use Case 5: Data Quality Check
+
+Find records with missing critical information:
+
+```javascript
+const incompleteRecords = await excel_filter_data({
+  filename: "data.xlsx",
+  worksheet: "Sheet1",
+  startCell: "A1",
+  endCell: "K1000",
+  filters: [
+    { column: "B", operator: "isBlank" }
+  ]
+});
+
+// Returns rows where column B is empty (data quality issue)
+```
+
+#### Use Case 6: Regional Analysis
+
+Find all customers in specific regions:
+
+```javascript
+const westCoastCustomers = await excel_filter_data({
+  filename: "customers.xlsx",
+  worksheet: "CustomerList",
+  startCell: "A1",
+  endCell: "J1500",
+  filters: [
+    { column: "G", operator: "equals", value: "California" },
+    { column: "G", operator: "equals", value: "Oregon" },
+    { column: "G", operator: "equals", value: "Washington" }
+  ]
+});
+
+// Note: This won't work as expected (OR logic not supported).
+// For OR logic, you would need to run separate filters and combine results.
+```
+
+### Comparison: Filter vs Read Range
+
+**Approach 1: Read Entire Range + Manual Filter (NOT RECOMMENDED)**
+
+```javascript
+// ❌ Inefficient - reads all data then filters manually
+const allData = await excel_read_range({
+  filename: "employees.xlsx",
+  worksheet: "Sheet1",
+  startCell: "A1",
+  endCell: "N215"
+});
+
+// Then manually filter through all 215 rows
+const areaManagers = allData.filter(row => 
+  row.some(cell => cell.value === "Quản lý khu vực")
+);
+```
+
+**Approach 2: Use excel_filter_data (RECOMMENDED)**
+
+```javascript
+// ✅ Efficient - filters at the source, returns only matching rows
+const areaManagers = await excel_filter_data({
+  filename: "employees.xlsx",
+  worksheet: "Sheet1",
+  startCell: "A1",
+  endCell: "N215",
+  filters: [
+    { column: "I", operator: "equals", value: "Quản lý khu vực" }
+  ],
+  hasHeader: true
+});
+```
+
+**Benefits of using excel_filter_data:**
+- ✅ Faster performance (filtering happens server-side)
+- ✅ Less memory usage (only returns matching rows)
+- ✅ Cleaner code (no manual filtering logic)
+- ✅ Better for large datasets
+
+### Best Practices
+
+1. **Always specify the correct data range**: Use `startCell` and `endCell` to limit the filter to your actual data area for better performance.
+
+2. **Use `hasHeader: true`**: When your data has headers, this ensures the first row is included in results and properly labeled.
+
+3. **Start with single filters**: Test with one condition first, then add more filters incrementally to debug issues.
+
+4. **Consider data types**: For numeric comparisons, ensure the column contains numbers, not text stored as numbers.
+
+5. **Use `contains` for partial matches**: When you're unsure of exact values or need flexibility, `contains` is more flexible than `equals`.
+
+6. **Case sensitivity**: Default is case-insensitive. Only use `matchCase: true` when you need exact case matching.
+
+7. **Filter before reading**: Always try to filter data first, then read the filtered results rather than reading everything and filtering manually.
+
+### Performance Tips
+
+- **Filter on smaller ranges when possible**: Instead of filtering 10,000 rows, filter only the relevant 1,000 rows.
+- **Use specific conditions**: `equals` is faster than `contains` when you know the exact value.
+- **Multiple filters**: All filters are evaluated together, so combining conditions doesn't add significant overhead.
+- **Avoid OR logic**: Multiple filters use AND logic. For OR logic, run separate filter operations.
+
+### Troubleshooting
+
+**Problem: No results returned**
+- Check that the column letter is correct (A, B, C, etc.)
+- Verify the value matches exactly (use `contains` for partial matches)
+- Ensure the data range includes all your data
+
+**Problem: Too many results returned**
+- Add more filter conditions to narrow down results
+- Check that you're using the correct operator (e.g., `equals` vs `contains`)
+- Verify the data range doesn't include unnecessary rows
+
+**Problem: Numeric comparison not working**
+- Ensure the column contains actual numbers, not text
+- Try wrapping the value in quotes: `"100"` instead of `100`
+- Check for spaces or special characters in the data
+
+### Filter Operators Reference
+
+| Operator | Description | Example | When to Use |
+|----------|-------------|---------|-------------|
+| `equals` | Exact match | `{column: "A", operator: "equals", value: "John"}` | When you know the exact value |
+| `notEquals` | Not equal | `{column: "B", operator: "notEquals", value: "Inactive"}` | To exclude specific values |
+| `contains` | Contains text | `{column: "A", operator: "contains", value: "Manager"}` | For partial text matching |
+| `notContains` | Doesn't contain | `{column: "C", operator: "notContains", value: "Test"}` | To exclude text patterns |
+| `greaterThan` | > comparison | `{column: "D", operator: "greaterThan", value: "100"}` | Numeric thresholds |
+| `lessThan` | < comparison | `{column: "D", operator: "lessThan", value: "500"}` | Numeric limits |
+| `greaterThanOrEqual` | >= comparison | `{column: "D", operator: "greaterThanOrEqual", value: "0"}` | Numeric minimum |
+| `lessThanOrEqual` | <= comparison | `{column: "D", operator: "lessThanOrEqual", value: "1000"}` | Numeric maximum |
+| `isBlank` | Cell is empty | `{column: "E", operator: "isBlank"}` | Find missing data |
+| `isNotBlank` | Cell not empty | `{column: "E", operator: "isNotBlank"}` | Find populated cells |
 
 ## Common Patterns
 
@@ -552,7 +1009,7 @@ await excel_close_workbook({ filename: "new-report.xlsx" });
 await excel_write_cell({
   filename: "report.xlsx",
   worksheet: "Sheet1",
-  cellAddress": "B10",
+  cellAddress: "B10",
   value: "=SUM(B1:B9)"
 });
 
@@ -563,6 +1020,31 @@ const cell = await excel_get_cell_info({
   cellAddress: "B10"
 });
 // Result: { value: 150000, type: "formula", formula: "=SUM(B1:B9)" }
+```
+
+### Filtering Data
+
+```javascript
+// 1. Open workbook
+await excel_open_workbook({ filePath: "/data/employees.xlsx" });
+
+// 2. Filter data (efficient - server-side filtering)
+const managers = await excel_filter_data({
+  filename: "employees.xlsx",
+  worksheet: "Sheet1",
+  startCell: "A1",
+  endCell: "N500",
+  filters: [
+    { column: "I", operator: "equals", value: "Manager" }
+  ],
+  hasHeader: true
+});
+
+// 3. Process filtered results
+console.log(`Found ${managers.length} managers`);
+
+// 4. Close workbook
+await excel_close_workbook({ filename: "employees.xlsx" });
 ```
 
 ## Rate Limits and Quotas
