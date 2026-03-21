@@ -30,6 +30,17 @@ npm run build
 cp .env.example .env
 ```
 
+### 📌 Đã cấu hình sẵn cho Cline
+
+Server đã được cấu hình và kết nối sẵn với Cline! Xem [Hướng dẫn cài đặt chi tiết](docs/SETUP_GUIDE.md) để biết:
+
+✅ **Trạng thái hiện tại**: Đã kết nối và hoạt động bình thường
+- Server đang chạy: `node dist/index.js`
+- Cấu hình Cline: `.cline/mcp_servers.json`
+- File cấu hình đã sẵn sàng sử dụng
+
+**Xem ngay**: [docs/SETUP_GUIDE.md](docs/SETUP_GUIDE.md) để biết cách sử dụng
+
 ### Configuration
 
 Edit `.env` file to customize permissions:

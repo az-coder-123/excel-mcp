@@ -149,7 +149,7 @@ export class SystemHandlers extends BaseHandler {
     const permissions = this.permissionChecker.getConfig();
     
     return {
-      logLevel: this.logger.getLevel(),
+      logLevel: this.logger.getLogLevel(),
       maxFileSize: permissions.maxFileSize,
       maxFileSizeMB: `${Math.round(permissions.maxFileSize / 1024 / 1024)}MB`,
       allowedPathsCount: permissions.allowedPaths.length,
