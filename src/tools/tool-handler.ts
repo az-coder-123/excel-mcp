@@ -158,6 +158,40 @@ export class ToolHandler {
           return await this.formattingHandlers.handleSetPrintArea(args);
         case 'excel_add_header_footer':
           return await this.formattingHandlers.handleAddHeaderFooter(args);
+        case 'excel_set_font_style':
+          return await this.formattingHandlers.handleSetFontStyle(args);
+        case 'excel_set_font_name_size':
+          return await this.formattingHandlers.handleSetFontNameSize(args);
+        case 'excel_set_alignment':
+          return await this.formattingHandlers.handleSetAlignment(args);
+        case 'excel_center_text':
+          return await this.formattingHandlers.handleCenterText(args);
+        case 'excel_set_border':
+          return await this.formattingHandlers.handleSetBorder(args);
+        case 'excel_apply_all_borders':
+          return await this.formattingHandlers.handleApplyAllBorders(args);
+        case 'excel_apply_outline_border':
+          return await this.formattingHandlers.handleApplyOutlineBorder(args);
+        case 'excel_set_background_color':
+          return await this.formattingHandlers.handleSetBackgroundColor(args);
+        case 'excel_set_font_color':
+          return await this.formattingHandlers.handleSetFontColor(args);
+        case 'excel_set_number_format':
+          return await this.formattingHandlers.handleSetNumberFormat(args);
+        case 'excel_apply_header_style':
+          return await this.formattingHandlers.handleApplyHeaderStyle(args);
+        case 'excel_apply_title_style':
+          return await this.formattingHandlers.handleApplyTitleStyle(args);
+        case 'excel_apply_currency_format':
+          return await this.formattingHandlers.handleApplyCurrencyFormat(args);
+        case 'excel_apply_percentage_format':
+          return await this.formattingHandlers.handleApplyPercentageFormat(args);
+        case 'excel_apply_date_format':
+          return await this.formattingHandlers.handleApplyDateFormat(args);
+        case 'excel_apply_table_style':
+          return await this.formattingHandlers.handleApplyTableStyle(args);
+        case 'excel_set_rich_text':
+          return await this.formattingHandlers.handleSetRichText(args);
 
         // Comment and data operations
         case 'excel_add_comment':

@@ -21,6 +21,728 @@ export class ExcelFormatting {
     this.activeWorkbooks = activeWorkbooks;
   }
 
+  // New formatting methods
+  
+  /**
+   * Set font style (bold, italic, underline, strikethrough)
+   */
+  public async setFontStyle(
+    filename: string,
+    worksheetName: string,
+    startCell: string,
+    endCell: string | undefined,
+    options: {
+      bold?: boolean;
+      italic?: boolean;
+      underline?: boolean | string;
+      strikethrough?: boolean;
+    }
+  ): Promise<OperationResult<void>> {
+    try {
+      const validation = this.permissionChecker.hasPermission('write');
+      if (!validation.success) {
+        return { success: false, error: validation.error };
+      }
+
+      const workbook = this.activeWorkbooks.get(filename);
+      if (!workbook) {
+        return { success: false, error: `Workbook "${filename}" not opened` };
+      }
+
+      const worksheet = workbook.getWorksheet(worksheetName);
+      if (!worksheet) {
+        return { success: false, error: `Worksheet "${worksheetName}" not found` };
+      }
+
+      const range = this.parseCellRangeOrSingle(startCell, endCell);
+      
+      for (let row = range.start.row; row <= range.end.row; row++) {
+        for (let col = range.start.column; col <= range.end.column; col++) {
+          const cell = worksheet.getCell(row, col);
+          if (options.bold !== undefined) {
+            cell.font = { ...cell.font, bold: options.bold };
+          }
+          if (options.italic !== undefined) {
+            cell.font = { ...cell.font, italic: options.italic };
+          }
+          if (options.underline !== undefined) {
+            cell.font = { ...cell.font, underline: options.underline as any };
+          }
+          if (options.strikethrough !== undefined) {
+            cell.font = { ...cell.font, strike: options.strikethrough };
+          }
+        }
+      }
+
+      return { success: true };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return { success: false, error: message };
+    }
+  }
+
+  /**
+   * Set font name and size
+   */
+  public async setFontNameSize(
+    filename: string,
+    worksheetName: string,
+    startCell: string,
+    endCell: string | undefined,
+    fontName?: string,
+    fontSize?: number
+  ): Promise<OperationResult<void>> {
+    try {
+      const validation = this.permissionChecker.hasPermission('write');
+      if (!validation.success) {
+        return { success: false, error: validation.error };
+      }
+
+      const workbook = this.activeWorkbooks.get(filename);
+      if (!workbook) {
+        return { success: false, error: `Workbook "${filename}" not opened` };
+      }
+
+      const worksheet = workbook.getWorksheet(worksheetName);
+      if (!worksheet) {
+        return { success: false, error: `Worksheet "${worksheetName}" not found` };
+      }
+
+      const range = this.parseCellRangeOrSingle(startCell, endCell);
+      
+      for (let row = range.start.row; row <= range.end.row; row++) {
+        for (let col = range.start.column; col <= range.end.column; col++) {
+          const cell = worksheet.getCell(row, col);
+          if (fontName !== undefined) {
+            cell.font = { ...cell.font, name: fontName };
+          }
+          if (fontSize !== undefined) {
+            cell.font = { ...cell.font, size: fontSize };
+          }
+        }
+      }
+
+      return { success: true };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return { success: false, error: message };
+    }
+  }
+
+  /**
+   * Set alignment
+   */
+  public async setAlignment(
+    filename: string,
+    worksheetName: string,
+    startCell: string,
+    endCell: string | undefined,
+    options: {
+      horizontal?: 'left' | 'center' | 'right' | 'fill' | 'justify' | 'centerContinuous' | 'distributed';
+      vertical?: 'top' | 'middle' | 'bottom' | 'justify' | 'distributed';
+      wrapText?: boolean;
+      shrinkToFit?: boolean;
+      indent?: number;
+      textRotation?: number;
+    }
+  ): Promise<OperationResult<void>> {
+    try {
+      const validation = this.permissionChecker.hasPermission('write');
+      if (!validation.success) {
+        return { success: false, error: validation.error };
+      }
+
+      const workbook = this.activeWorkbooks.get(filename);
+      if (!workbook) {
+        return { success: false, error: `Workbook "${filename}" not opened` };
+      }
+
+      const worksheet = workbook.getWorksheet(worksheetName);
+      if (!worksheet) {
+        return { success: false, error: `Worksheet "${worksheetName}" not found` };
+      }
+
+      const range = this.parseCellRangeOrSingle(startCell, endCell);
+      
+      for (let row = range.start.row; row <= range.end.row; row++) {
+        for (let col = range.start.column; col <= range.end.column; col++) {
+          const cell = worksheet.getCell(row, col);
+          cell.alignment = {
+            ...cell.alignment,
+            ...(options.horizontal && { horizontal: options.horizontal }),
+            ...(options.vertical && { vertical: options.vertical }),
+            ...(options.wrapText !== undefined && { wrapText: options.wrapText }),
+            ...(options.shrinkToFit !== undefined && { shrinkToFit: options.shrinkToFit }),
+            ...(options.indent !== undefined && { indent: options.indent }),
+            ...(options.textRotation !== undefined && { textRotation: options.textRotation }),
+          };
+        }
+      }
+
+      return { success: true };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return { success: false, error: message };
+    }
+  }
+
+  /**
+   * Center text
+   */
+  public async centerText(
+    filename: string,
+    worksheetName: string,
+    startCell: string,
+    endCell: string | undefined
+  ): Promise<OperationResult<void>> {
+    return this.setAlignment(filename, worksheetName, startCell, endCell, {
+      horizontal: 'center',
+      vertical: 'middle',
+    });
+  }
+
+  /**
+   * Set border
+   */
+  public async setBorder(
+    filename: string,
+    worksheetName: string,
+    startCell: string,
+    endCell: string | undefined,
+    options: {
+      borderStyle?: 'thin' | 'medium' | 'thick' | 'double' | 'dotted' | 'dashed' | 'hair' | 'mediumDashed' | 'mediumDashDot' | 'slantDashDot' | 'dashDot';
+      borderColor?: string;
+      top?: boolean;
+      bottom?: boolean;
+      left?: boolean;
+      right?: boolean;
+      diagonal?: boolean;
+    }
+  ): Promise<OperationResult<void>> {
+    try {
+      const validation = this.permissionChecker.hasPermission('write');
+      if (!validation.success) {
+        return { success: false, error: validation.error };
+      }
+
+      const workbook = this.activeWorkbooks.get(filename);
+      if (!workbook) {
+        return { success: false, error: `Workbook "${filename}" not opened` };
+      }
+
+      const worksheet = workbook.getWorksheet(worksheetName);
+      if (!worksheet) {
+        return { success: false, error: `Worksheet "${worksheetName}" not found` };
+      }
+
+      const range = this.parseCellRangeOrSingle(startCell, endCell);
+      const style = options.borderStyle || 'thin';
+      const color = options.borderColor || 'FF000000';
+      
+      for (let row = range.start.row; row <= range.end.row; row++) {
+        for (let col = range.start.column; col <= range.end.column; col++) {
+          const cell = worksheet.getCell(row, col);
+          cell.border = {
+            ...(cell.border || {}),
+            ...(options.top !== false && { top: { style: style, color: { argb: color } } }),
+            ...(options.bottom !== false && { bottom: { style: style, color: { argb: color } } }),
+            ...(options.left !== false && { left: { style: style, color: { argb: color } } }),
+            ...(options.right !== false && { right: { style: style, color: { argb: color } } }),
+            ...(options.diagonal && { diagonal: { style: style, color: { argb: color } } }),
+          };
+        }
+      }
+
+      return { success: true };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return { success: false, error: message };
+    }
+  }
+
+  /**
+   * Apply all borders
+   */
+  public async applyAllBorders(
+    filename: string,
+    worksheetName: string,
+    startCell: string,
+    endCell: string | undefined,
+    borderStyle: string = 'thin',
+    borderColor: string = 'FF000000'
+  ): Promise<OperationResult<void>> {
+    return this.setBorder(filename, worksheetName, startCell, endCell, {
+      borderStyle: borderStyle as any,
+      borderColor,
+      top: true,
+      bottom: true,
+      left: true,
+      right: true,
+    });
+  }
+
+  /**
+   * Apply outline border
+   */
+  public async applyOutlineBorder(
+    filename: string,
+    worksheetName: string,
+    startCell: string,
+    endCell: string | undefined,
+    borderStyle: string = 'thin',
+    borderColor: string = 'FF000000'
+  ): Promise<OperationResult<void>> {
+    try {
+      const validation = this.permissionChecker.hasPermission('write');
+      if (!validation.success) {
+        return { success: false, error: validation.error };
+      }
+
+      const workbook = this.activeWorkbooks.get(filename);
+      if (!workbook) {
+        return { success: false, error: `Workbook "${filename}" not opened` };
+      }
+
+      const worksheet = workbook.getWorksheet(worksheetName);
+      if (!worksheet) {
+        return { success: false, error: `Worksheet "${worksheetName}" not found` };
+      }
+
+      const range = this.parseCellRangeOrSingle(startCell, endCell);
+      
+      // Apply borders only to outline
+      for (let col = range.start.column; col <= range.end.column; col++) {
+        const topCell = worksheet.getCell(range.start.row, col);
+        const bottomCell = worksheet.getCell(range.end.row, col);
+        topCell.border = { ...topCell.border, top: { style: borderStyle as any, color: { argb: borderColor } } };
+        bottomCell.border = { ...bottomCell.border, bottom: { style: borderStyle as any, color: { argb: borderColor } } };
+      }
+      
+      for (let row = range.start.row; row <= range.end.row; row++) {
+        const leftCell = worksheet.getCell(row, range.start.column);
+        const rightCell = worksheet.getCell(row, range.end.column);
+        leftCell.border = { ...leftCell.border, left: { style: borderStyle as any, color: { argb: borderColor } } };
+        rightCell.border = { ...rightCell.border, right: { style: borderStyle as any, color: { argb: borderColor } } };
+      }
+
+      return { success: true };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return { success: false, error: message };
+    }
+  }
+
+  /**
+   * Set background color
+   */
+  public async setBackgroundColor(
+    filename: string,
+    worksheetName: string,
+    startCell: string,
+    endCell: string | undefined,
+    color: string
+  ): Promise<OperationResult<void>> {
+    try {
+      const validation = this.permissionChecker.hasPermission('write');
+      if (!validation.success) {
+        return { success: false, error: validation.error };
+      }
+
+      const workbook = this.activeWorkbooks.get(filename);
+      if (!workbook) {
+        return { success: false, error: `Workbook "${filename}" not opened` };
+      }
+
+      const worksheet = workbook.getWorksheet(worksheetName);
+      if (!worksheet) {
+        return { success: false, error: `Worksheet "${worksheetName}" not found` };
+      }
+
+      const range = this.parseCellRangeOrSingle(startCell, endCell);
+      
+      for (let row = range.start.row; row <= range.end.row; row++) {
+        for (let col = range.start.column; col <= range.end.column; col++) {
+          const cell = worksheet.getCell(row, col);
+          cell.fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: color },
+          };
+        }
+      }
+
+      return { success: true };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return { success: false, error: message };
+    }
+  }
+
+  /**
+   * Set font color
+   */
+  public async setFontColor(
+    filename: string,
+    worksheetName: string,
+    startCell: string,
+    endCell: string | undefined,
+    color: string
+  ): Promise<OperationResult<void>> {
+    try {
+      const validation = this.permissionChecker.hasPermission('write');
+      if (!validation.success) {
+        return { success: false, error: validation.error };
+      }
+
+      const workbook = this.activeWorkbooks.get(filename);
+      if (!workbook) {
+        return { success: false, error: `Workbook "${filename}" not opened` };
+      }
+
+      const worksheet = workbook.getWorksheet(worksheetName);
+      if (!worksheet) {
+        return { success: false, error: `Worksheet "${worksheetName}" not found` };
+      }
+
+      const range = this.parseCellRangeOrSingle(startCell, endCell);
+      
+      for (let row = range.start.row; row <= range.end.row; row++) {
+        for (let col = range.start.column; col <= range.end.column; col++) {
+          const cell = worksheet.getCell(row, col);
+          cell.font = { ...cell.font, color: { argb: color } };
+        }
+      }
+
+      return { success: true };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return { success: false, error: message };
+    }
+  }
+
+  /**
+   * Set number format
+   */
+  public async setNumberFormat(
+    filename: string,
+    worksheetName: string,
+    startCell: string,
+    endCell: string | undefined,
+    format: string
+  ): Promise<OperationResult<void>> {
+    try {
+      const validation = this.permissionChecker.hasPermission('write');
+      if (!validation.success) {
+        return { success: false, error: validation.error };
+      }
+
+      const workbook = this.activeWorkbooks.get(filename);
+      if (!workbook) {
+        return { success: false, error: `Workbook "${filename}" not opened` };
+      }
+
+      const worksheet = workbook.getWorksheet(worksheetName);
+      if (!worksheet) {
+        return { success: false, error: `Worksheet "${worksheetName}" not found` };
+      }
+
+      const range = this.parseCellRangeOrSingle(startCell, endCell);
+      const numFmt = this.getFormatCode(format);
+      
+      for (let row = range.start.row; row <= range.end.row; row++) {
+        for (let col = range.start.column; col <= range.end.column; col++) {
+          const cell = worksheet.getCell(row, col);
+          cell.numFmt = numFmt;
+        }
+      }
+
+      return { success: true };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return { success: false, error: message };
+    }
+  }
+
+  /**
+   * Apply header style
+   */
+  public async applyHeaderStyle(
+    filename: string,
+    worksheetName: string,
+    startCell: string,
+    endCell: string | undefined,
+    backgroundColor: string = 'FFD3D3D3',
+    fontColor: string = 'FF000000'
+  ): Promise<OperationResult<void>> {
+    try {
+      const validation = this.permissionChecker.hasPermission('write');
+      if (!validation.success) {
+        return { success: false, error: validation.error };
+      }
+
+      const workbook = this.activeWorkbooks.get(filename);
+      if (!workbook) {
+        return { success: false, error: `Workbook "${filename}" not opened` };
+      }
+
+      const worksheet = workbook.getWorksheet(worksheetName);
+      if (!worksheet) {
+        return { success: false, error: `Worksheet "${worksheetName}" not found` };
+      }
+
+      const range = this.parseCellRangeOrSingle(startCell, endCell);
+      
+      for (let row = range.start.row; row <= range.end.row; row++) {
+        for (let col = range.start.column; col <= range.end.column; col++) {
+          const cell = worksheet.getCell(row, col);
+          cell.font = { ...cell.font, bold: true, color: { argb: fontColor } };
+          cell.fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: backgroundColor },
+          };
+          cell.alignment = { ...cell.alignment, horizontal: 'center', vertical: 'middle' };
+          cell.border = {
+            top: { style: 'thin', color: { argb: 'FF000000' } },
+            left: { style: 'thin', color: { argb: 'FF000000' } },
+            bottom: { style: 'thin', color: { argb: 'FF000000' } },
+            right: { style: 'thin', color: { argb: 'FF000000' } },
+          };
+        }
+      }
+
+      return { success: true };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return { success: false, error: message };
+    }
+  }
+
+  /**
+   * Apply title style
+   */
+  public async applyTitleStyle(
+    filename: string,
+    worksheetName: string,
+    startCell: string,
+    endCell: string | undefined,
+    fontSize: number = 16,
+    color: string = 'FF1F4E78'
+  ): Promise<OperationResult<void>> {
+    try {
+      const validation = this.permissionChecker.hasPermission('write');
+      if (!validation.success) {
+        return { success: false, error: validation.error };
+      }
+
+      const workbook = this.activeWorkbooks.get(filename);
+      if (!workbook) {
+        return { success: false, error: `Workbook "${filename}" not opened` };
+      }
+
+      const worksheet = workbook.getWorksheet(worksheetName);
+      if (!worksheet) {
+        return { success: false, error: `Worksheet "${worksheetName}" not found` };
+      }
+
+      const range = this.parseCellRangeOrSingle(startCell, endCell);
+      
+      for (let row = range.start.row; row <= range.end.row; row++) {
+        for (let col = range.start.column; col <= range.end.column; col++) {
+          const cell = worksheet.getCell(row, col);
+          cell.font = { ...cell.font, bold: true, size: fontSize, color: { argb: color } };
+          cell.alignment = { ...cell.alignment, horizontal: 'center', vertical: 'middle' };
+        }
+      }
+
+      return { success: true };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return { success: false, error: message };
+    }
+  }
+
+  /**
+   * Apply currency format
+   */
+  public async applyCurrencyFormat(
+    filename: string,
+    worksheetName: string,
+    startCell: string,
+    endCell: string | undefined,
+    symbol: string = '$',
+    decimalPlaces: number = 2
+  ): Promise<OperationResult<void>> {
+    const format = symbol === '$' 
+      ? `"${symbol}"#,##0.${'0'.repeat(decimalPlaces)}`
+      : `"${symbol}" #,##0.${'0'.repeat(decimalPlaces)}`;
+    return this.setNumberFormat(filename, worksheetName, startCell, endCell, format);
+  }
+
+  /**
+   * Apply percentage format
+   */
+  public async applyPercentageFormat(
+    filename: string,
+    worksheetName: string,
+    startCell: string,
+    endCell: string | undefined,
+    decimalPlaces: number = 2
+  ): Promise<OperationResult<void>> {
+    const format = `0.${'0'.repeat(decimalPlaces)}%`;
+    return this.setNumberFormat(filename, worksheetName, startCell, endCell, format);
+  }
+
+  /**
+   * Apply date format
+   */
+  public async applyDateFormat(
+    filename: string,
+    worksheetName: string,
+    startCell: string,
+    endCell: string | undefined,
+    format: string = 'short'
+  ): Promise<OperationResult<void>> {
+    const formatCodes: Record<string, string> = {
+      short: 'mm/dd/yyyy',
+      long: 'dddd, mmmm dd, yyyy',
+      iso: 'yyyy-mm-dd',
+    };
+    return this.setNumberFormat(filename, worksheetName, startCell, endCell, formatCodes[format] || format);
+  }
+
+  /**
+   * Apply table style
+   */
+  public async applyTableStyle(
+    filename: string,
+    worksheetName: string,
+    startCell: string,
+    endCell: string,
+    headerBackgroundColor: string = 'FFD3D3D3',
+    headerFontColor: string = 'FF000000',
+    alternateRowColor: string = 'FFF9F9F9',
+    hasHeader: boolean = true
+  ): Promise<OperationResult<void>> {
+    try {
+      const validation = this.permissionChecker.hasPermission('write');
+      if (!validation.success) {
+        return { success: false, error: validation.error };
+      }
+
+      const workbook = this.activeWorkbooks.get(filename);
+      if (!workbook) {
+        return { success: false, error: `Workbook "${filename}" not opened` };
+      }
+
+      const worksheet = workbook.getWorksheet(worksheetName);
+      if (!worksheet) {
+        return { success: false, error: `Worksheet "${worksheetName}" not found` };
+      }
+
+      const range = this.parseCellRange(startCell, endCell);
+      if (!range) {
+        return { success: false, error: 'Invalid cell range' };
+      }
+
+      // Apply header style
+      if (hasHeader) {
+        for (let col = range.start.column; col <= range.end.column; col++) {
+          const cell = worksheet.getCell(range.start.row, col);
+          cell.font = { ...cell.font, bold: true, color: { argb: headerFontColor } };
+          cell.fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: headerBackgroundColor },
+          };
+          cell.alignment = { ...cell.alignment, horizontal: 'center', vertical: 'middle' };
+          cell.border = {
+            top: { style: 'thin', color: { argb: 'FF000000' } },
+            left: { style: 'thin', color: { argb: 'FF000000' } },
+            bottom: { style: 'thin', color: { argb: 'FF000000' } },
+            right: { style: 'thin', color: { argb: 'FF000000' } },
+          };
+        }
+      }
+
+      // Apply data rows with alternating colors
+      let alternate = false;
+      for (let row = hasHeader ? range.start.row + 1 : range.start.row; row <= range.end.row; row++) {
+        alternate = !alternate;
+        for (let col = range.start.column; col <= range.end.column; col++) {
+          const cell = worksheet.getCell(row, col);
+          if (alternate) {
+            cell.fill = {
+              type: 'pattern',
+              pattern: 'solid',
+              fgColor: { argb: alternateRowColor },
+            };
+          }
+          cell.border = {
+            top: { style: 'thin', color: { argb: 'FFD9D9D9' } },
+            left: { style: 'thin', color: { argb: 'FFD9D9D9' } },
+            bottom: { style: 'thin', color: { argb: 'FFD9D9D9' } },
+            right: { style: 'thin', color: { argb: 'FFD9D9D9' } },
+          };
+        }
+      }
+
+      return { success: true };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return { success: false, error: message };
+    }
+  }
+
+  /**
+   * Set rich text
+   */
+  public async setRichText(
+    filename: string,
+    worksheetName: string,
+    cellAddress: string,
+    richText: Array<{ text: string; bold?: boolean; italic?: boolean; underline?: boolean; fontColor?: string; fontSize?: number; fontName?: string }>
+  ): Promise<OperationResult<void>> {
+    try {
+      const validation = this.permissionChecker.hasPermission('write');
+      if (!validation.success) {
+        return { success: false, error: validation.error };
+      }
+
+      const workbook = this.activeWorkbooks.get(filename);
+      if (!workbook) {
+        return { success: false, error: `Workbook "${filename}" not opened` };
+      }
+
+      const worksheet = workbook.getWorksheet(worksheetName);
+      if (!worksheet) {
+        return { success: false, error: `Worksheet "${worksheetName}" not found` };
+      }
+
+      const cell = worksheet.getCell(cellAddress);
+      cell.value = {
+        richText: richText.map(segment => ({
+          text: segment.text,
+          font: {
+            ...(segment.bold !== undefined && { bold: segment.bold }),
+            ...(segment.italic !== undefined && { italic: segment.italic }),
+            ...(segment.underline !== undefined && { underline: segment.underline }),
+            ...(segment.fontColor && { color: { argb: segment.fontColor } }),
+            ...(segment.fontSize && { size: segment.fontSize }),
+            ...(segment.fontName && { name: segment.fontName }),
+          }
+        }))
+      };
+
+      return { success: true };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return { success: false, error: message };
+    }
+  }
+
+  // Existing methods continue...
+  
   /**
    * Set cell formatting
    */
@@ -490,6 +1212,47 @@ export class ExcelFormatting {
   }
 
   // Helper methods
+  private parseCellRangeOrSingle(startCell: string, endCell: string | undefined): { start: { row: number; column: number }; end: { row: number; column: number } } {
+    if (endCell) {
+      const range = this.parseCellRange(startCell, endCell);
+      if (!range) {
+        return { start: { row: 1, column: 1 }, end: { row: 1, column: 1 } };
+      }
+      return range;
+    } else {
+      const address = this.parseCellAddress(startCell);
+      return { start: address, end: address };
+    }
+  }
+
+  private parseCellAddress(address: string): { row: number; column: number } {
+    const match = address.match(/^([A-Z]+)(\d+)$/i);
+    if (!match) {
+      return { row: 1, column: 1 };
+    }
+
+    const column = this.columnLetterToNumber(match[1].toUpperCase());
+    const row = parseInt(match[2], 10);
+
+    return { row, column };
+  }
+
+  private getFormatCode(format: string): string {
+    const formatCodes: Record<string, string> = {
+      currency: '$#,##0.00',
+      percentage: '0.00%',
+      number: '#,##0.00',
+      integer: '#,##0',
+      date: 'mm/dd/yyyy',
+      time: 'hh:mm:ss',
+      datetime: 'mm/dd/yyyy hh:mm:ss',
+      fraction: '# ?/?',
+      scientific: '0.00E+00',
+      text: '@',
+    };
+    return formatCodes[format] || format;
+  }
+
   private applyFormat(cell: ExcelJS.Cell, format: Record<string, unknown>): void {
     if (format.bold !== undefined) {
       cell.font = { ...cell.font, bold: format.bold as boolean };

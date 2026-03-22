@@ -199,6 +199,74 @@ export class ExcelService {
     return this.formatting.addHeaderFooter(filename, worksheetName, header, footer);
   }
 
+  public async setFontStyle(filename: string, worksheetName: string, startCell: string, endCell: string | undefined, options: { bold?: boolean; italic?: boolean; underline?: boolean | string; strikethrough?: boolean }): Promise<OperationResult<void>> {
+    return this.formatting.setFontStyle(filename, worksheetName, startCell, endCell, options);
+  }
+
+  public async setFontNameSize(filename: string, worksheetName: string, startCell: string, endCell: string | undefined, fontName?: string, fontSize?: number): Promise<OperationResult<void>> {
+    return this.formatting.setFontNameSize(filename, worksheetName, startCell, endCell, fontName, fontSize);
+  }
+
+  public async setAlignment(filename: string, worksheetName: string, startCell: string, endCell: string | undefined, options: { horizontal?: string; vertical?: string; wrapText?: boolean; shrinkToFit?: boolean; indent?: number; textRotation?: number }): Promise<OperationResult<void>> {
+    return this.formatting.setAlignment(filename, worksheetName, startCell, endCell, options as any);
+  }
+
+  public async centerText(filename: string, worksheetName: string, startCell: string, endCell: string | undefined): Promise<OperationResult<void>> {
+    return this.formatting.centerText(filename, worksheetName, startCell, endCell);
+  }
+
+  public async setBorder(filename: string, worksheetName: string, startCell: string, endCell: string | undefined, options: { borderStyle?: string; borderColor?: string; top?: boolean; bottom?: boolean; left?: boolean; right?: boolean; diagonal?: boolean }): Promise<OperationResult<void>> {
+    return this.formatting.setBorder(filename, worksheetName, startCell, endCell, options as any);
+  }
+
+  public async applyAllBorders(filename: string, worksheetName: string, startCell: string, endCell: string | undefined, borderStyle?: string, borderColor?: string): Promise<OperationResult<void>> {
+    return this.formatting.applyAllBorders(filename, worksheetName, startCell, endCell, borderStyle, borderColor);
+  }
+
+  public async applyOutlineBorder(filename: string, worksheetName: string, startCell: string, endCell: string | undefined, borderStyle?: string, borderColor?: string): Promise<OperationResult<void>> {
+    return this.formatting.applyOutlineBorder(filename, worksheetName, startCell, endCell, borderStyle, borderColor);
+  }
+
+  public async setBackgroundColor(filename: string, worksheetName: string, startCell: string, endCell: string | undefined, color: string): Promise<OperationResult<void>> {
+    return this.formatting.setBackgroundColor(filename, worksheetName, startCell, endCell, color);
+  }
+
+  public async setFontColor(filename: string, worksheetName: string, startCell: string, endCell: string | undefined, color: string): Promise<OperationResult<void>> {
+    return this.formatting.setFontColor(filename, worksheetName, startCell, endCell, color);
+  }
+
+  public async setNumberFormat(filename: string, worksheetName: string, startCell: string, endCell: string | undefined, format: string): Promise<OperationResult<void>> {
+    return this.formatting.setNumberFormat(filename, worksheetName, startCell, endCell, format);
+  }
+
+  public async applyHeaderStyle(filename: string, worksheetName: string, startCell: string, endCell: string | undefined, backgroundColor?: string, fontColor?: string): Promise<OperationResult<void>> {
+    return this.formatting.applyHeaderStyle(filename, worksheetName, startCell, endCell, backgroundColor, fontColor);
+  }
+
+  public async applyTitleStyle(filename: string, worksheetName: string, startCell: string, endCell: string | undefined, fontSize?: number, color?: string): Promise<OperationResult<void>> {
+    return this.formatting.applyTitleStyle(filename, worksheetName, startCell, endCell, fontSize, color);
+  }
+
+  public async applyCurrencyFormat(filename: string, worksheetName: string, startCell: string, endCell: string | undefined, symbol?: string, decimalPlaces?: number): Promise<OperationResult<void>> {
+    return this.formatting.applyCurrencyFormat(filename, worksheetName, startCell, endCell, symbol, decimalPlaces);
+  }
+
+  public async applyPercentageFormat(filename: string, worksheetName: string, startCell: string, endCell: string | undefined, decimalPlaces?: number): Promise<OperationResult<void>> {
+    return this.formatting.applyPercentageFormat(filename, worksheetName, startCell, endCell, decimalPlaces);
+  }
+
+  public async applyDateFormat(filename: string, worksheetName: string, startCell: string, endCell: string | undefined, format?: string): Promise<OperationResult<void>> {
+    return this.formatting.applyDateFormat(filename, worksheetName, startCell, endCell, format);
+  }
+
+  public async applyTableStyle(filename: string, worksheetName: string, startCell: string, endCell: string, headerBackgroundColor?: string, headerFontColor?: string, alternateRowColor?: string, hasHeader?: boolean): Promise<OperationResult<void>> {
+    return this.formatting.applyTableStyle(filename, worksheetName, startCell, endCell, headerBackgroundColor, headerFontColor, alternateRowColor, hasHeader);
+  }
+
+  public async setRichText(filename: string, worksheetName: string, cellAddress: string, richText: Array<{ text: string; bold?: boolean; italic?: boolean; underline?: boolean; fontColor?: string; fontSize?: number; fontName?: string }>): Promise<OperationResult<void>> {
+    return this.formatting.setRichText(filename, worksheetName, cellAddress, richText);
+  }
+
   // Chart operations
   // Note: ExcelJS has limited chart support. These methods store chart metadata for reference.
   // Full chart creation and manipulation requires ExcelJS's native chart API or external libraries.
