@@ -492,4 +492,121 @@ export const ADVANCED_DATA_TOOLS: ToolDefinition[] = [
     ],
     requiredPermissions: ['write'],
   },
+  {
+    name: 'excel_split_data_to_worksheets',
+    description: 'Split data from one worksheet into multiple worksheets based on column values',
+    parameters: [
+      {
+        name: 'filename',
+        type: 'string',
+        description: 'Name of the opened workbook',
+        required: true,
+      },
+      {
+        name: 'sourceWorksheet',
+        type: 'string',
+        description: 'Name of the source worksheet',
+        required: true,
+      },
+      {
+        name: 'columnLetter',
+        type: 'string',
+        description: 'Column letter to filter by (e.g., I for column I)',
+        required: true,
+      },
+      {
+        name: 'sheetNames',
+        type: 'object',
+        description: 'Object mapping values to sheet names (e.g., {"Giám đốc vùng": "Danh sách GĐ vùng", ...})',
+        required: false,
+      },
+      {
+        name: 'includeHeader',
+        type: 'boolean',
+        description: 'Whether to include header row in each sheet (default: true)',
+        required: false,
+      },
+    ],
+    requiredPermissions: ['write'],
+  },
+  {
+    name: 'excel_get_unique_values',
+    description: 'Get unique values from a specific column',
+    parameters: [
+      {
+        name: 'filename',
+        type: 'string',
+        description: 'Name of the opened workbook',
+        required: true,
+      },
+      {
+        name: 'worksheet',
+        type: 'string',
+        description: 'Name of the worksheet',
+        required: true,
+      },
+      {
+        name: 'columnLetter',
+        type: 'string',
+        description: 'Column letter to analyze (e.g., A, B, C)',
+        required: true,
+      },
+      {
+        name: 'hasHeader',
+        type: 'boolean',
+        description: 'Whether first row is a header (default: true)',
+        required: false,
+      },
+    ],
+    requiredPermissions: ['read'],
+  },
+  {
+    name: 'excel_filter_data',
+    description: 'Filter data based on conditions and copy to a new worksheet',
+    parameters: [
+      {
+        name: 'filename',
+        type: 'string',
+        description: 'Name of the opened workbook',
+        required: true,
+      },
+      {
+        name: 'sourceWorksheet',
+        type: 'string',
+        description: 'Name of the source worksheet',
+        required: true,
+      },
+      {
+        name: 'targetWorksheet',
+        type: 'string',
+        description: 'Name of the target worksheet (will be created if not exists)',
+        required: true,
+      },
+      {
+        name: 'filters',
+        type: 'array',
+        description: 'Array of filter conditions (e.g., [{column: "I", value: "Giám đốc vùng"}])',
+        required: true,
+        items: {
+          name: 'column',
+          type: 'string',
+          description: 'Column letter',
+          required: true
+        },
+      },
+      {
+        name: 'sourceRange',
+        type: 'string',
+        description: 'Source data range (e.g., A1:N215)',
+        required: false,
+      },
+      {
+        name: 'targetCell',
+        type: 'string',
+        description: 'Target cell in the new worksheet (default: A1)',
+        required: false,
+      },
+    ],
+    requiredPermissions: ['write'],
+  },
 ];

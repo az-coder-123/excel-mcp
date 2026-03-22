@@ -178,6 +178,10 @@ export class ToolHandler {
           return await this.advancedDataHandlers.handleHighlightDuplicates(args);
         case 'excel_get_duplicate_info':
           return await this.advancedDataHandlers.handleGetDuplicateInfo(args);
+        case 'excel_split_data_to_worksheets':
+          return await this.advancedDataHandlers.handleSplitDataToWorksheets(args);
+        case 'excel_get_unique_values':
+          return await this.advancedDataHandlers.handleGetUniqueValues(args);
 
         // Analysis operations
         case 'excel_get_column_stats':

@@ -30,7 +30,7 @@ export class AdvancedDataHandlers extends BaseHandler {
       return { success: false, error: 'Invalid cell range format' };
     }
 
-    // Read the range data
+    // Read range data
     const readResult = await this.excelService.readRange(filename, worksheet, range);
     if (!readResult.success || !readResult.data) {
       return readResult;
@@ -113,7 +113,7 @@ export class AdvancedDataHandlers extends BaseHandler {
       return { success: false, error: 'Invalid cell range format' };
     }
 
-    // Read the range data
+    // Read range data
     const readResult = await this.excelService.readRange(filename, worksheet, range);
     if (!readResult.success || !readResult.data) {
       return readResult;
@@ -220,7 +220,7 @@ export class AdvancedDataHandlers extends BaseHandler {
     }
 
     // Get worksheet row count
-    const listResult = this.excelService.getWorksheets(filename);
+    const listResult = await this.excelService.getWorksheets(filename);
     if (!listResult.success || !listResult.data) {
       return listResult;
     }
@@ -237,20 +237,20 @@ export class AdvancedDataHandlers extends BaseHandler {
       return { success: false, error: 'Invalid column format' };
     }
 
-    // Read the entire column
+    // Read entire column
     const endCell = this.columnNumberToLetter(columnNumber) + sheetInfo.rowCount;
     const range = this.parseCellRange(`${column}1`, endCell);
     if (!range) {
       return { success: false, error: 'Invalid column range' };
     }
 
-    // Read the column data
+    // Read column data
     const readResult = await this.excelService.readRange(filename, worksheet, range);
     if (!readResult.success || !readResult.data) {
       return readResult;
     }
 
-    // Find duplicates in the column
+    // Find duplicates in column
     const valueMap = new Map<string, number[]>();
     const data = readResult.data as Array<Array<{ value: string }>>;
 
@@ -323,5 +323,377 @@ export class AdvancedDataHandlers extends BaseHandler {
       result = result * 26 + char;
     }
     return result;
+  }
+
+  /**
+   * Split data from one worksheet into multiple worksheets based on column values
+   */
+  async handleSplitDataToWorksheets(args: Record<string, unknown>): Promise<OperationResult> {
+    const filename = this.getStringArg(args, 'filename');
+    const sourceWorksheet = this.getStringArg(args, 'sourceWorksheet');
+    const columnLetter = this.getStringArg(args, 'columnLetter');
+    const sheetNames = this.getObjectArg(args, 'sheetNames');
+    const includeHeader = this.getBooleanArg(args, 'includeHeader') ?? true;
+
+    if (!filename || !sourceWorksheet || !columnLetter) {
+      return { success: false, error: 'Missing required parameters' };
+    }
+
+    // Parse column to number
+    const columnNumber = this.columnLetterToNumber(columnLetter);
+    if (!columnNumber) {
+      return { success: false, error: 'Invalid column format' };
+    }
+
+    // Get worksheet info to determine range
+    const listResult = await this.excelService.getWorksheets(filename);
+    if (!listResult.success || !listResult.data) {
+      return listResult;
+    }
+
+    const sheets = listResult.data as Array<{ name: string; rowCount: number }>;
+    const sheetInfo = sheets.find(s => s.name === sourceWorksheet);
+    if (!sheetInfo) {
+      return { success: false, error: 'Source worksheet not found' };
+    }
+
+    // Read all data from source worksheet
+    const endCell = this.columnNumberToLetter(sheetInfo.rowCount) + sheetInfo.rowCount;
+    const range = this.parseCellRange('A1', endCell);
+    if (!range) {
+      return { success: false, error: 'Invalid range format' };
+    }
+
+    const readResult = await this.excelService.readRange(filename, sourceWorksheet, range);
+    if (!readResult.success || !readResult.data) {
+      return readResult;
+    }
+
+    const data = readResult.data as Array<Array<{ value: unknown }>>;
+    if (data.length === 0) {
+      return { success: false, error: 'No data found' };
+    }
+
+    // Group data by column value
+    const groupedData = new Map<string, Array<Array<unknown>>>();
+    const headerRow = includeHeader ? data[0] : null;
+
+    const startRow = includeHeader ? 1 : 0;
+    for (let row = startRow; row < data.length; row++) {
+      const rowValues = data[row];
+      const cellValue = rowValues[columnNumber - 1];
+      const stringValue = cellValue !== undefined && cellValue !== null ? String(cellValue.value) : '';
+      
+      if (stringValue) {
+        if (!groupedData.has(stringValue)) {
+          groupedData.set(stringValue, []);
+        }
+        groupedData.get(stringValue)!.push(rowValues);
+      }
+    }
+
+    // Create worksheets for each group
+    const results: Array<{ sheetName: string; rowCount: number }> = [];
+    
+    for (const [value, rows] of groupedData.entries()) {
+      const targetSheetName: string = sheetNames && sheetNames[value] ? String(sheetNames[value]) : value;
+      
+      // Create worksheet
+      const createResult = await this.excelService.addWorksheet(filename, targetSheetName);
+      if (!createResult.success) {
+        return createResult;
+      }
+
+      // Write data
+      let startRow = 1;
+      if (includeHeader && headerRow) {
+        const headerResult = await this.excelService.writeBatch(
+          filename,
+          targetSheetName,
+          this.convertHeaderToBatch(headerRow, 1)
+        );
+        if (!headerResult.success) {
+          return headerResult;
+        }
+        startRow = 2;
+      }
+
+      // Write data rows
+      for (let i = 0; i < rows.length; i++) {
+        const rowData = rows[i] as Array<unknown>;
+        for (let col = 0; col < rowData.length; col++) {
+          const cellAddress = this.columnNumberToLetter(col + 1) + (startRow + i);
+          const cellValue = rowData[col] !== undefined ? rowData[col] : '';
+          
+          const writeResult = await this.excelService.writeCell(
+            filename,
+            targetSheetName,
+            cellAddress,
+            String(cellValue)
+          );
+          
+          if (!writeResult.success) {
+            return writeResult;
+          }
+        }
+      }
+
+      results.push({
+        sheetName: targetSheetName,
+        rowCount: rows.length
+      });
+    }
+
+    return {
+      success: true,
+      data: {
+        sheetsCreated: results.length,
+        details: results
+      }
+    };
+  }
+
+  /**
+   * Convert header row to batch format
+   */
+  private convertHeaderToBatch(headerRow: Array<{ value: unknown }>, row: number): Array<{ cellAddress: string; value: string }> {
+    return headerRow.map((cell, index) => ({
+      cellAddress: this.columnNumberToLetter(index + 1) + row,
+      value: cell !== undefined && cell !== null ? String(cell.value) : ''
+    }));
+  }
+
+  /**
+   * Get unique values from a specific column
+   */
+  async handleGetUniqueValues(args: Record<string, unknown>): Promise<OperationResult> {
+    const filename = this.getStringArg(args, 'filename');
+    const worksheet = this.getStringArg(args, 'worksheet');
+    const columnLetter = this.getStringArg(args, 'columnLetter');
+    const hasHeader = this.getBooleanArg(args, 'hasHeader') ?? true;
+
+    if (!filename || !worksheet || !columnLetter) {
+      return { success: false, error: 'Missing required parameters' };
+    }
+
+    // Get worksheet info
+    const listResult = await this.excelService.getWorksheets(filename);
+    if (!listResult.success || !listResult.data) {
+      return listResult;
+    }
+
+    const sheets = listResult.data as Array<{ name: string; rowCount: number }>;
+    const sheetInfo = sheets.find(s => s.name === worksheet);
+    if (!sheetInfo) {
+      return { success: false, error: 'Worksheet not found' };
+    }
+
+    // Parse column to number
+    const columnNumber = this.columnLetterToNumber(columnLetter);
+    if (!columnNumber) {
+      return { success: false, error: 'Invalid column format' };
+    }
+
+    // Read entire column
+    const endCell = this.columnNumberToLetter(columnNumber) + sheetInfo.rowCount;
+    const range = this.parseCellRange(`${columnLetter}1`, endCell);
+    if (!range) {
+      return { success: false, error: 'Invalid column range' };
+    }
+
+    const readResult = await this.excelService.readRange(filename, worksheet, range);
+    if (!readResult.success || !readResult.data) {
+      return readResult;
+    }
+
+    const data = readResult.data as Array<Array<{ value: unknown }>>;
+    const startRow = hasHeader ? 1 : 0;
+
+    // Extract values
+    const values: string[] = [];
+    for (let row = startRow; row < data.length; row++) {
+      const cell = data[row][0];
+      if (cell && cell.value !== undefined && cell.value !== null) {
+        values.push(String(cell.value));
+      }
+    }
+
+    // Get unique values
+    const uniqueValues = [...new Set(values)];
+    const valueCount = new Map<string, number>();
+    
+    for (const value of values) {
+      valueCount.set(value, (valueCount.get(value) || 0) + 1);
+    }
+
+    const sortedUnique = uniqueValues.sort((a, b) => {
+      const countDiff = (valueCount.get(b) || 0) - (valueCount.get(a) || 0);
+      return countDiff !== 0 ? countDiff : a.localeCompare(b);
+    });
+
+    return {
+      success: true,
+      data: {
+        column: columnLetter,
+        totalValues: values.length,
+        uniqueValues: sortedUnique,
+        uniqueCount: sortedUnique.length,
+        valueCounts: Object.fromEntries(valueCount.entries())
+      }
+    };
+  }
+
+  /**
+   * Filter data based on conditions and copy to a new worksheet
+   */
+  async handleFilterData(args: Record<string, unknown>): Promise<OperationResult> {
+    const filename = this.getStringArg(args, 'filename');
+    const sourceWorksheet = this.getStringArg(args, 'sourceWorksheet');
+    const targetWorksheet = this.getStringArg(args, 'targetWorksheet');
+    const filtersArg = this.getArrayArg(args, 'filters');
+    const sourceRangeArg = this.getStringArg(args, 'sourceRange');
+    const targetCellArg = this.getStringArg(args, 'targetCell') || 'A1';
+
+    if (!filename || !sourceWorksheet || !targetWorksheet || !filtersArg) {
+      return { success: false, error: 'Missing required parameters' };
+    }
+
+    // Parse filters
+    const filters: Array<{ column: string; value: string }> = [];
+    for (const filter of filtersArg) {
+      if (typeof filter === 'object' && filter !== null) {
+        const f = filter as Record<string, unknown>;
+        const column = f.column as string;
+        const value = f.value as string;
+        filters.push({ column, value });
+      }
+    }
+
+    // Determine source range
+    let startCell = 'A1';
+    let endCell = 'Z999';
+    
+    if (sourceRangeArg) {
+      const range = this.parseCellRangeString(sourceRangeArg);
+      if (range) {
+        startCell = range.startCell;
+        endCell = range.endCell;
+      }
+    } else {
+      // Get worksheet info
+      const listResult = await this.excelService.getWorksheets(filename);
+      if (!listResult.success || !listResult.data) {
+        return listResult;
+      }
+
+      const sheets = listResult.data as Array<{ name: string; rowCount: number }>;
+      const sheetInfo = sheets.find(s => s.name === sourceWorksheet);
+      if (sheetInfo) {
+        endCell = 'Z' + sheetInfo.rowCount;
+      }
+    }
+
+    const range = this.parseCellRange(startCell, endCell);
+    if (!range) {
+      return { success: false, error: 'Invalid range format' };
+    }
+
+    // Read source data
+    const readResult = await this.excelService.readRange(filename, sourceWorksheet, range);
+    if (!readResult.success || !readResult.data) {
+      return readResult;
+    }
+
+    const data = readResult.data as Array<Array<{ value: unknown }>>;
+
+    // Filter data
+    const filteredRows: Array<Array<unknown>> = [];
+    for (const row of data) {
+      let matchesAllFilters = true;
+      
+      for (const filter of filters) {
+        const colNumber = this.columnLetterToNumber(filter.column);
+        if (!colNumber) {
+          return { success: false, error: `Invalid column format: ${filter.column}` };
+        }
+        
+        const cellValue = row[colNumber - 1];
+        const stringValue = cellValue !== undefined && cellValue !== null ? String(cellValue.value) : '';
+        
+        if (stringValue !== filter.value) {
+          matchesAllFilters = false;
+          break;
+        }
+      }
+      
+      if (matchesAllFilters) {
+        filteredRows.push(row);
+      }
+    }
+
+    if (filteredRows.length === 0) {
+      return {
+        success: true,
+        data: {
+          message: 'No rows matched filter criteria',
+          filteredRows: 0
+        }
+      };
+    }
+
+    // Create target worksheet
+    const createResult = await this.excelService.addWorksheet(filename, targetWorksheet);
+    if (!createResult.success) {
+      return createResult;
+    }
+
+    // Parse target cell
+    const targetCellParts = targetCellArg.match(/([A-Z]+)(\d+)/);
+    const targetRow = targetCellParts ? parseInt(targetCellParts[2]) : 1;
+
+    // Write filtered data
+    for (let rowIndex = 0; rowIndex < filteredRows.length; rowIndex++) {
+      const row = filteredRows[rowIndex];
+      for (let colIndex = 0; colIndex < row.length; colIndex++) {
+        const cellAddress = this.columnNumberToLetter(colIndex + 1) + (targetRow + rowIndex);
+        const cellValue = row[colIndex] !== undefined ? row[colIndex] : '';
+        
+        const writeResult = await this.excelService.writeCell(
+          filename,
+          targetWorksheet,
+          cellAddress,
+          String(cellValue)
+        );
+        
+        if (!writeResult.success) {
+          return writeResult;
+        }
+      }
+    }
+
+    return {
+      success: true,
+      data: {
+        sourceRange: `${startCell}:${endCell}`,
+        targetWorksheet,
+        filters,
+        filteredRows: filteredRows.length,
+        message: `Filtered ${filteredRows.length} rows from ${data.length} total rows`
+      }
+    };
+  }
+
+  /**
+   * Parse cell range string to components
+   */
+  private parseCellRangeString(rangeStr: string): { startCell: string; endCell: string } | null {
+    const parts = rangeStr.split(':');
+    if (parts.length !== 2) {
+      return null;
+    }
+    return {
+      startCell: parts[0],
+      endCell: parts[1]
+    };
   }
 }

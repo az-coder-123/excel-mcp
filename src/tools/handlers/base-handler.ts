@@ -27,6 +27,16 @@ export abstract class BaseHandler {
     return typeof value === 'boolean' ? value : undefined;
   }
 
+  protected getObjectArg(args: Record<string, unknown>, key: string): Record<string, unknown> | undefined {
+    const value = args[key];
+    return typeof value === 'object' && value !== null ? value as Record<string, unknown> : undefined;
+  }
+
+  protected getArrayArg(args: Record<string, unknown>, key: string): unknown[] | undefined {
+    const value = args[key];
+    return Array.isArray(value) ? value : undefined;
+  }
+
   protected parseCellAddress(address: string): { row: number; column: number } | null {
     const match = address.match(/^([A-Z]+)(\d+)$/i);
     if (!match) return null;
