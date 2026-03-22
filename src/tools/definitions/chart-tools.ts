@@ -8,43 +8,43 @@ import { ToolDefinition } from '../../types/index.js';
 export const CHART_TOOLS: ToolDefinition[] = [
   {
     name: 'excel_add_chart',
-    description: 'Create a chart from data range',
+    description: 'Create chart from data',
     parameters: [
       {
         name: 'filename',
         type: 'string',
-        description: 'Name of the opened workbook',
+        description: 'Workbook name',
         required: true,
       },
       {
         name: 'worksheet',
         type: 'string',
-        description: 'Name of the worksheet',
+        description: 'Worksheet name',
         required: true,
       },
       {
         name: 'dataStartCell',
         type: 'string',
-        description: 'Start cell of data range (e.g., A1)',
+        description: 'Data start (e.g., A1)',
         required: true,
       },
       {
         name: 'dataEndCell',
         type: 'string',
-        description: 'End cell of data range (e.g., D10)',
+        description: 'Data end (e.g., D10)',
         required: true,
       },
       {
         name: 'chartType',
         type: 'string',
-        description: 'Type of chart',
+        description: 'Chart type',
         required: true,
         enum: ['column', 'bar', 'line', 'pie', 'doughnut', 'area', 'scatter', 'radar'],
       },
       {
         name: 'targetCell',
         type: 'string',
-        description: 'Cell where chart will be placed (e.g., F1)',
+        description: 'Placement cell (e.g., F1)',
         required: true,
       },
       {
@@ -56,13 +56,13 @@ export const CHART_TOOLS: ToolDefinition[] = [
       {
         name: 'width',
         type: 'number',
-        description: 'Chart width in pixels',
+        description: 'Width in pixels',
         required: false,
       },
       {
         name: 'height',
         type: 'number',
-        description: 'Chart height in pixels',
+        description: 'Height in pixels',
         required: false,
       },
     ],
@@ -70,36 +70,36 @@ export const CHART_TOOLS: ToolDefinition[] = [
   },
   {
     name: 'excel_update_chart',
-    description: 'Update chart data range',
+    description: 'Update chart data',
     parameters: [
       {
         name: 'filename',
         type: 'string',
-        description: 'Name of the opened workbook',
+        description: 'Workbook name',
         required: true,
       },
       {
         name: 'worksheet',
         type: 'string',
-        description: 'Name of the worksheet',
+        description: 'Worksheet name',
         required: true,
       },
       {
         name: 'chartIndex',
         type: 'number',
-        description: 'Index of the chart (0-based)',
+        description: 'Chart index (0-based)',
         required: true,
       },
       {
         name: 'dataStartCell',
         type: 'string',
-        description: 'New start cell of data range',
+        description: 'New data start',
         required: true,
       },
       {
         name: 'dataEndCell',
         type: 'string',
-        description: 'New end cell of data range',
+        description: 'New data end',
         required: true,
       },
     ],
@@ -107,24 +107,24 @@ export const CHART_TOOLS: ToolDefinition[] = [
   },
   {
     name: 'excel_delete_chart',
-    description: 'Delete a chart from worksheet',
+    description: 'Delete chart',
     parameters: [
       {
         name: 'filename',
         type: 'string',
-        description: 'Name of the opened workbook',
+        description: 'Workbook name',
         required: true,
       },
       {
         name: 'worksheet',
         type: 'string',
-        description: 'Name of the worksheet',
+        description: 'Worksheet name',
         required: true,
       },
       {
         name: 'chartIndex',
         type: 'number',
-        description: 'Index of the chart to delete (0-based)',
+        description: 'Chart index (0-based)',
         required: true,
       },
     ],
@@ -132,18 +132,18 @@ export const CHART_TOOLS: ToolDefinition[] = [
   },
   {
     name: 'excel_list_charts',
-    description: 'List all charts in a worksheet',
+    description: 'List worksheet charts',
     parameters: [
       {
         name: 'filename',
         type: 'string',
-        description: 'Name of the opened workbook',
+        description: 'Workbook name',
         required: true,
       },
       {
         name: 'worksheet',
         type: 'string',
-        description: 'Name of the worksheet',
+        description: 'Worksheet name',
         required: true,
       },
     ],

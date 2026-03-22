@@ -8,24 +8,24 @@ import { ToolDefinition } from '../../types/index.js';
 export const CELL_TOOLS: ToolDefinition[] = [
   {
     name: 'excel_read_cell',
-    description: 'Read the value of a specific cell in an Excel workbook',
+    description: 'Read single cell value',
     parameters: [
       {
         name: 'filename',
         type: 'string',
-        description: 'Name of the opened workbook',
+        description: 'Opened workbook name',
         required: true,
       },
       {
         name: 'worksheet',
         type: 'string',
-        description: 'Name of the worksheet',
+        description: 'Worksheet name',
         required: true,
       },
       {
         name: 'cellAddress',
         type: 'string',
-        description: 'Cell address (e.g., A1, B2)',
+        description: 'Cell address (e.g., A1)',
         required: true,
       },
     ],
@@ -33,30 +33,30 @@ export const CELL_TOOLS: ToolDefinition[] = [
   },
   {
     name: 'excel_read_range',
-    description: 'Read values from a range of cells',
+    description: 'Read cell range values',
     parameters: [
       {
         name: 'filename',
         type: 'string',
-        description: 'Name of the opened workbook',
+        description: 'Opened workbook name',
         required: true,
       },
       {
         name: 'worksheet',
         type: 'string',
-        description: 'Name of the worksheet',
+        description: 'Worksheet name',
         required: true,
       },
       {
         name: 'startCell',
         type: 'string',
-        description: 'Start cell of the range (e.g., A1)',
+        description: 'Range start cell (e.g., A1)',
         required: true,
       },
       {
         name: 'endCell',
         type: 'string',
-        description: 'End cell of the range (e.g., C10)',
+        description: 'Range end cell (e.g., C10)',
         required: true,
       },
     ],
@@ -64,30 +64,30 @@ export const CELL_TOOLS: ToolDefinition[] = [
   },
   {
     name: 'excel_write_cell',
-    description: 'Write a value to a specific cell',
+    description: 'Write value to cell',
     parameters: [
       {
         name: 'filename',
         type: 'string',
-        description: 'Name of the opened workbook',
+        description: 'Opened workbook name',
         required: true,
       },
       {
         name: 'worksheet',
         type: 'string',
-        description: 'Name of the worksheet',
+        description: 'Worksheet name',
         required: true,
       },
       {
         name: 'cellAddress',
         type: 'string',
-        description: 'Cell address (e.g., A1, B2)',
+        description: 'Cell address (e.g., A1)',
         required: true,
       },
       {
         name: 'value',
         type: 'string',
-        description: 'Value to write (can be string, number, or formula starting with =)',
+        description: 'Value (string, number, or formula with =)',
         required: true,
       },
     ],
@@ -95,24 +95,24 @@ export const CELL_TOOLS: ToolDefinition[] = [
   },
   {
     name: 'excel_write_batch',
-    description: 'Write multiple values to cells in batch for better performance',
+    description: 'Write multiple cells at once',
     parameters: [
       {
         name: 'filename',
         type: 'string',
-        description: 'Name of the opened workbook',
+        description: 'Opened workbook name',
         required: true,
       },
       {
         name: 'worksheet',
         type: 'string',
-        description: 'Name of the worksheet',
+        description: 'Worksheet name',
         required: true,
       },
       {
         name: 'data',
         type: 'array',
-        description: 'Array of objects with cellAddress and value properties',
+        description: 'Array of {cellAddress, value}',
         required: true,
         items: {
           name: 'item',
@@ -130,24 +130,24 @@ export const CELL_TOOLS: ToolDefinition[] = [
   },
   {
     name: 'excel_get_cell_info',
-    description: 'Get detailed information about a cell including type and formula',
+    description: 'Get cell details (type, formula)',
     parameters: [
       {
         name: 'filename',
         type: 'string',
-        description: 'Name of the opened workbook',
+        description: 'Opened workbook name',
         required: true,
       },
       {
         name: 'worksheet',
         type: 'string',
-        description: 'Name of the worksheet',
+        description: 'Worksheet name',
         required: true,
       },
       {
         name: 'cellAddress',
         type: 'string',
-        description: 'Cell address (e.g., A1, B2)',
+        description: 'Cell address (e.g., A1)',
         required: true,
       },
     ],
@@ -155,30 +155,30 @@ export const CELL_TOOLS: ToolDefinition[] = [
   },
   {
     name: 'excel_copy_range',
-    description: 'Copy a range of cells to another location',
+    description: 'Copy cell range to location',
     parameters: [
       {
         name: 'filename',
         type: 'string',
-        description: 'Name of the opened workbook',
+        description: 'Opened workbook name',
         required: true,
       },
       {
         name: 'worksheet',
         type: 'string',
-        description: 'Name of the worksheet',
+        description: 'Source worksheet name',
         required: true,
       },
       {
         name: 'sourceStart',
         type: 'string',
-        description: 'Source range start cell (e.g., A1)',
+        description: 'Source range start (e.g., A1)',
         required: true,
       },
       {
         name: 'sourceEnd',
         type: 'string',
-        description: 'Source range end cell (e.g., C10)',
+        description: 'Source range end (e.g., C10)',
         required: true,
       },
       {
@@ -190,7 +190,7 @@ export const CELL_TOOLS: ToolDefinition[] = [
       {
         name: 'targetWorksheet',
         type: 'string',
-        description: 'Target worksheet (same worksheet if not specified)',
+        description: 'Target worksheet (optional)',
         required: false,
       },
     ],
@@ -198,18 +198,18 @@ export const CELL_TOOLS: ToolDefinition[] = [
   },
   {
     name: 'excel_find_replace',
-    description: 'Find and replace text in worksheet',
+    description: 'Find and replace text',
     parameters: [
       {
         name: 'filename',
         type: 'string',
-        description: 'Name of the opened workbook',
+        description: 'Opened workbook name',
         required: true,
       },
       {
         name: 'worksheet',
         type: 'string',
-        description: 'Name of the worksheet',
+        description: 'Worksheet name',
         required: true,
       },
       {
@@ -221,19 +221,19 @@ export const CELL_TOOLS: ToolDefinition[] = [
       {
         name: 'replaceText',
         type: 'string',
-        description: 'Text to replace with',
+        description: 'Replacement text',
         required: true,
       },
       {
         name: 'matchCase',
         type: 'boolean',
-        description: 'Case sensitive search',
+        description: 'Case sensitive',
         required: false,
       },
       {
         name: 'matchEntireCell',
         type: 'boolean',
-        description: 'Match entire cell content',
+        description: 'Match entire cell',
         required: false,
       },
     ],
@@ -241,42 +241,42 @@ export const CELL_TOOLS: ToolDefinition[] = [
   },
   {
     name: 'excel_sort_range',
-    description: 'Sort a range of data',
+    description: 'Sort range by column',
     parameters: [
       {
         name: 'filename',
         type: 'string',
-        description: 'Name of the opened workbook',
+        description: 'Opened workbook name',
         required: true,
       },
       {
         name: 'worksheet',
         type: 'string',
-        description: 'Name of the worksheet',
+        description: 'Worksheet name',
         required: true,
       },
       {
         name: 'startCell',
         type: 'string',
-        description: 'Start cell of range (e.g., A1)',
+        description: 'Range start (e.g., A1)',
         required: true,
       },
       {
         name: 'endCell',
         type: 'string',
-        description: 'End cell of range (e.g., D100)',
+        description: 'Range end (e.g., D100)',
         required: true,
       },
       {
         name: 'sortColumn',
         type: 'number',
-        description: 'Column number to sort by (1-based)',
+        description: 'Column number (1-based)',
         required: true,
       },
       {
         name: 'ascending',
         type: 'boolean',
-        description: 'Sort ascending (true) or descending (false)',
+        description: 'Ascending (true) or descending',
         required: false,
       },
     ],
@@ -284,12 +284,12 @@ export const CELL_TOOLS: ToolDefinition[] = [
   },
   {
     name: 'excel_get_named_ranges',
-    description: 'Get list of named ranges in workbook',
+    description: 'List named ranges',
     parameters: [
       {
         name: 'filename',
         type: 'string',
-        description: 'Name of the opened workbook',
+        description: 'Opened workbook name',
         required: true,
       },
     ],
@@ -297,36 +297,36 @@ export const CELL_TOOLS: ToolDefinition[] = [
   },
   {
     name: 'excel_add_named_range',
-    description: 'Create a named range',
+    description: 'Create named range',
     parameters: [
       {
         name: 'filename',
         type: 'string',
-        description: 'Name of the opened workbook',
+        description: 'Opened workbook name',
         required: true,
       },
       {
         name: 'worksheet',
         type: 'string',
-        description: 'Name of the worksheet',
+        description: 'Worksheet name',
         required: true,
       },
       {
         name: 'name',
         type: 'string',
-        description: 'Name for the range',
+        description: 'Range name',
         required: true,
       },
       {
         name: 'startCell',
         type: 'string',
-        description: 'Start cell of range (e.g., A1)',
+        description: 'Range start (e.g., A1)',
         required: true,
       },
       {
         name: 'endCell',
         type: 'string',
-        description: 'End cell of range (e.g., D10)',
+        description: 'Range end (e.g., D10)',
         required: true,
       },
     ],
@@ -334,12 +334,12 @@ export const CELL_TOOLS: ToolDefinition[] = [
   },
   {
     name: 'excel_calculate_formula',
-    description: 'Force recalculation of all formulas',
+    description: 'Recalculate all formulas',
     parameters: [
       {
         name: 'filename',
         type: 'string',
-        description: 'Name of the opened workbook',
+        description: 'Opened workbook name',
         required: true,
       },
     ],

@@ -8,24 +8,24 @@ import { ToolDefinition } from '../../types/index.js';
 export const COMMENT_DATA_TOOLS: ToolDefinition[] = [
   {
     name: 'excel_add_comment',
-    description: 'Add comment/note to a cell',
+    description: 'Add cell comment',
     parameters: [
       {
         name: 'filename',
         type: 'string',
-        description: 'Name of the opened workbook',
+        description: 'Workbook name',
         required: true,
       },
       {
         name: 'worksheet',
         type: 'string',
-        description: 'Name of the worksheet',
+        description: 'Worksheet name',
         required: true,
       },
       {
         name: 'cellAddress',
         type: 'string',
-        description: 'Cell address (e.g., A1)',
+        description: 'Cell address',
         required: true,
       },
       {
@@ -37,7 +37,7 @@ export const COMMENT_DATA_TOOLS: ToolDefinition[] = [
       {
         name: 'author',
         type: 'string',
-        description: 'Comment author',
+        description: 'Author',
         required: false,
       },
     ],
@@ -45,24 +45,24 @@ export const COMMENT_DATA_TOOLS: ToolDefinition[] = [
   },
   {
     name: 'excel_remove_comment',
-    description: 'Remove comment from a cell',
+    description: 'Remove cell comment',
     parameters: [
       {
         name: 'filename',
         type: 'string',
-        description: 'Name of the opened workbook',
+        description: 'Workbook name',
         required: true,
       },
       {
         name: 'worksheet',
         type: 'string',
-        description: 'Name of the worksheet',
+        description: 'Worksheet name',
         required: true,
       },
       {
         name: 'cellAddress',
         type: 'string',
-        description: 'Cell address (e.g., A1)',
+        description: 'Cell address',
         required: true,
       },
     ],
@@ -70,36 +70,36 @@ export const COMMENT_DATA_TOOLS: ToolDefinition[] = [
   },
   {
     name: 'excel_add_hyperlink',
-    description: 'Add hyperlink to a cell',
+    description: 'Add hyperlink to cell',
     parameters: [
       {
         name: 'filename',
         type: 'string',
-        description: 'Name of the opened workbook',
+        description: 'Workbook name',
         required: true,
       },
       {
         name: 'worksheet',
         type: 'string',
-        description: 'Name of the worksheet',
+        description: 'Worksheet name',
         required: true,
       },
       {
         name: 'cellAddress',
         type: 'string',
-        description: 'Cell address (e.g., A1)',
+        description: 'Cell address',
         required: true,
       },
       {
         name: 'url',
         type: 'string',
-        description: 'URL or internal reference',
+        description: 'URL or reference',
         required: true,
       },
       {
         name: 'display',
         type: 'string',
-        description: 'Display text for the hyperlink',
+        description: 'Display text',
         required: false,
       },
     ],
@@ -107,56 +107,56 @@ export const COMMENT_DATA_TOOLS: ToolDefinition[] = [
   },
   {
     name: 'excel_add_data_validation',
-    description: 'Add data validation to a cell (dropdown, number range, etc.)',
+    description: 'Add data validation',
     parameters: [
       {
         name: 'filename',
         type: 'string',
-        description: 'Name of the opened workbook',
+        description: 'Workbook name',
         required: true,
       },
       {
         name: 'worksheet',
         type: 'string',
-        description: 'Name of the worksheet',
+        description: 'Worksheet name',
         required: true,
       },
       {
         name: 'cellAddress',
         type: 'string',
-        description: 'Cell address (e.g., A1)',
+        description: 'Cell address',
         required: true,
       },
       {
         name: 'type',
         type: 'string',
-        description: 'Validation type (list, whole, decimal, date, textLength)',
+        description: 'Type (list/whole/decimal/date/textLength)',
         required: true,
         enum: ['list', 'whole', 'decimal', 'date', 'textLength'],
       },
       {
         name: 'formula1',
         type: 'string',
-        description: 'First formula/value (for list: comma-separated items)',
+        description: 'First value (list: comma-separated)',
         required: true,
       },
       {
         name: 'formula2',
         type: 'string',
-        description: 'Second formula (for between operators)',
+        description: 'Second value (for between)',
         required: false,
       },
       {
         name: 'operator',
         type: 'string',
-        description: 'Comparison operator',
+        description: 'Operator',
         required: false,
         enum: ['between', 'notBetween', 'equal', 'notEqual', 'greaterThan', 'lessThan', 'greaterThanOrEqual', 'lessThanOrEqual'],
       },
       {
         name: 'errorMessage',
         type: 'string',
-        description: 'Error message for invalid input',
+        description: 'Error message',
         required: false,
       },
     ],

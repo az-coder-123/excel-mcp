@@ -8,36 +8,36 @@ import { ToolDefinition } from '../../types/index.js';
 export const PROTECTION_TOOLS: ToolDefinition[] = [
   {
     name: 'excel_protect_worksheet',
-    description: 'Protect a worksheet with password',
+    description: 'Protect worksheet',
     parameters: [
       {
         name: 'filename',
         type: 'string',
-        description: 'Name of the opened workbook',
+        description: 'Workbook name',
         required: true,
       },
       {
         name: 'worksheet',
         type: 'string',
-        description: 'Name of the worksheet to protect',
+        description: 'Worksheet name',
         required: true,
       },
       {
         name: 'password',
         type: 'string',
-        description: 'Protection password',
+        description: 'Password',
         required: false,
       },
       {
         name: 'allowSelectLockedCells',
         type: 'boolean',
-        description: 'Allow selecting locked cells',
+        description: 'Allow select locked',
         required: false,
       },
       {
         name: 'allowSelectUnlockedCells',
         type: 'boolean',
-        description: 'Allow selecting unlocked cells',
+        description: 'Allow select unlocked',
         required: false,
       },
     ],
@@ -45,24 +45,24 @@ export const PROTECTION_TOOLS: ToolDefinition[] = [
   },
   {
     name: 'excel_unprotect_worksheet',
-    description: 'Remove protection from a worksheet',
+    description: 'Unprotect worksheet',
     parameters: [
       {
         name: 'filename',
         type: 'string',
-        description: 'Name of the opened workbook',
+        description: 'Workbook name',
         required: true,
       },
       {
         name: 'worksheet',
         type: 'string',
-        description: 'Name of the worksheet',
+        description: 'Worksheet name',
         required: true,
       },
       {
         name: 'password',
         type: 'string',
-        description: 'Protection password',
+        description: 'Password',
         required: false,
       },
     ],
@@ -70,36 +70,36 @@ export const PROTECTION_TOOLS: ToolDefinition[] = [
   },
   {
     name: 'excel_protect_cells',
-    description: 'Lock or unlock specific cells',
+    description: 'Lock/unlock cells',
     parameters: [
       {
         name: 'filename',
         type: 'string',
-        description: 'Name of the opened workbook',
+        description: 'Workbook name',
         required: true,
       },
       {
         name: 'worksheet',
         type: 'string',
-        description: 'Name of the worksheet',
+        description: 'Worksheet name',
         required: true,
       },
       {
         name: 'startCell',
         type: 'string',
-        description: 'Start cell of range',
+        description: 'Range start',
         required: true,
       },
       {
         name: 'endCell',
         type: 'string',
-        description: 'End cell of range',
+        description: 'Range end',
         required: true,
       },
       {
         name: 'locked',
         type: 'boolean',
-        description: 'Lock (true) or unlock (false) cells',
+        description: 'Lock (true/false)',
         required: true,
       },
     ],
@@ -107,18 +107,18 @@ export const PROTECTION_TOOLS: ToolDefinition[] = [
   },
   {
     name: 'excel_protect_workbook',
-    description: 'Protect workbook structure',
+    description: 'Protect workbook',
     parameters: [
       {
         name: 'filename',
         type: 'string',
-        description: 'Name of the opened workbook',
+        description: 'Workbook name',
         required: true,
       },
       {
         name: 'password',
         type: 'string',
-        description: 'Protection password',
+        description: 'Password',
         required: false,
       },
     ],
@@ -126,18 +126,18 @@ export const PROTECTION_TOOLS: ToolDefinition[] = [
   },
   {
     name: 'excel_unprotect_workbook',
-    description: 'Remove workbook protection',
+    description: 'Unprotect workbook',
     parameters: [
       {
         name: 'filename',
         type: 'string',
-        description: 'Name of the opened workbook',
+        description: 'Workbook name',
         required: true,
       },
       {
         name: 'password',
         type: 'string',
-        description: 'Protection password',
+        description: 'Password',
         required: false,
       },
     ],

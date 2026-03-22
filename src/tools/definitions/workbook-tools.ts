@@ -8,12 +8,12 @@ import { ToolDefinition } from '../../types/index.js';
 export const WORKBOOK_TOOLS: ToolDefinition[] = [
   {
     name: 'excel_open_workbook',
-    description: 'Open an Excel workbook file for reading and writing operations',
+    description: 'Open Excel file for operations',
     parameters: [
       {
         name: 'filePath',
         type: 'string',
-        description: 'Absolute path to the Excel file (.xlsx, .xls)',
+        description: 'Absolute path to Excel file (.xlsx, .xls)',
         required: true,
       },
     ],
@@ -21,18 +21,18 @@ export const WORKBOOK_TOOLS: ToolDefinition[] = [
   },
   {
     name: 'excel_create_workbook',
-    description: 'Create a new Excel workbook',
+    description: 'Create new workbook',
     parameters: [
       {
         name: 'filename',
         type: 'string',
-        description: 'Name for the new workbook (without extension)',
+        description: 'Workbook name (without extension)',
         required: true,
       },
       {
         name: 'outputPath',
         type: 'string',
-        description: 'Directory path where the workbook will be saved',
+        description: 'Directory path for saving',
         required: true,
       },
     ],
@@ -40,18 +40,18 @@ export const WORKBOOK_TOOLS: ToolDefinition[] = [
   },
   {
     name: 'excel_save_workbook',
-    description: 'Save the workbook to disk',
+    description: 'Save workbook to disk',
     parameters: [
       {
         name: 'filename',
         type: 'string',
-        description: 'Name of the opened workbook',
+        description: 'Opened workbook name',
         required: true,
       },
       {
         name: 'outputPath',
         type: 'string',
-        description: 'Optional: Different path to save the file',
+        description: 'Optional: Different save path',
         required: false,
       },
     ],
@@ -59,12 +59,12 @@ export const WORKBOOK_TOOLS: ToolDefinition[] = [
   },
   {
     name: 'excel_close_workbook',
-    description: 'Close an opened workbook and free resources',
+    description: 'Close workbook, free resources',
     parameters: [
       {
         name: 'filename',
         type: 'string',
-        description: 'Name of the opened workbook',
+        description: 'Opened workbook name',
         required: true,
       },
     ],

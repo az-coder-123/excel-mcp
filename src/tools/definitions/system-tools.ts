@@ -12,8 +12,8 @@ import { ToolDefinition } from '../../types/index.js';
 export const SYSTEM_TOOLS: ToolDefinition[] = [
   {
     name: 'excel_health_check',
-    description: 'Check server health, dependencies, and configuration status',
+    description: 'Check server health and config',
     parameters: [],
-    requiredPermissions: [], // No permissions needed for health check
+    requiredPermissions: [],
   },
 ];

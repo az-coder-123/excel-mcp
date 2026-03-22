@@ -9,18 +9,18 @@
   // Font Style Tools
   {
     name: 'excel_set_font_style',
-    description: 'Apply font styling (bold, italic, underline, strikethrough) to a cell or range',
+    description: 'Apply font style (bold, italic, underline, strikethrough)',
     parameters: [
       {
         name: 'filename',
         type: 'string',
-        description: 'Name of the opened workbook',
+        description: 'Opened workbook name',
         required: true,
       },
       {
         name: 'worksheet',
         type: 'string',
-        description: 'Name of the worksheet',
+        description: 'Worksheet name',
         required: true,
       },
       {
@@ -32,31 +32,31 @@
       {
         name: 'endCell',
         type: 'string',
-        description: 'End cell for range (omit for single cell)',
+        description: 'End cell (optional)',
         required: false,
       },
       {
         name: 'bold',
         type: 'boolean',
-        description: 'Bold text',
+        description: 'Bold',
         required: false,
       },
       {
         name: 'italic',
         type: 'boolean',
-        description: 'Italic text',
+        description: 'Italic',
         required: false,
       },
       {
         name: 'underline',
         type: 'string',
-        description: 'Underline style (true for single, "double", "singleAccounting", "doubleAccounting")',
+        description: 'Underline (true/double/singleAccounting/doubleAccounting)',
         required: false,
       },
       {
         name: 'strikethrough',
         type: 'boolean',
-        description: 'Strikethrough text',
+        description: 'Strikethrough',
         required: false,
       },
     ],
@@ -64,18 +64,18 @@
   },
   {
     name: 'excel_set_font_name_size',
-    description: 'Set font family and size for a cell or range',
+    description: 'Set font name and size',
     parameters: [
       {
         name: 'filename',
         type: 'string',
-        description: 'Name of the opened workbook',
+        description: 'Opened workbook name',
         required: true,
       },
       {
         name: 'worksheet',
         type: 'string',
-        description: 'Name of the worksheet',
+        description: 'Worksheet name',
         required: true,
       },
       {
@@ -87,13 +87,13 @@
       {
         name: 'endCell',
         type: 'string',
-        description: 'End cell for range (omit for single cell)',
+        description: 'End cell (optional)',
         required: false,
       },
       {
         name: 'fontName',
         type: 'string',
-        description: 'Font name (e.g., Arial, Calibri, Times New Roman)',
+        description: 'Font name (e.g., Arial, Calibri)',
         required: false,
       },
       {
@@ -108,18 +108,18 @@
   // Alignment Tools
   {
     name: 'excel_set_alignment',
-    description: 'Set horizontal and vertical alignment for a cell or range',
+    description: 'Set cell alignment',
     parameters: [
       {
         name: 'filename',
         type: 'string',
-        description: 'Name of the opened workbook',
+        description: 'Opened workbook name',
         required: true,
       },
       {
         name: 'worksheet',
         type: 'string',
-        description: 'Name of the worksheet',
+        description: 'Worksheet name',
         required: true,
       },
       {
@@ -131,43 +131,43 @@
       {
         name: 'endCell',
         type: 'string',
-        description: 'End cell for range (omit for single cell)',
+        description: 'End cell (optional)',
         required: false,
       },
       {
         name: 'horizontal',
         type: 'string',
-        description: 'Horizontal alignment (left, center, right, fill, justify, distributed)',
+        description: 'Horizontal (left/center/right/fill/justify/distributed)',
         required: false,
       },
       {
         name: 'vertical',
         type: 'string',
-        description: 'Vertical alignment (top, middle, bottom, justify, distributed)',
+        description: 'Vertical (top/middle/bottom/justify/distributed)',
         required: false,
       },
       {
         name: 'wrapText',
         type: 'boolean',
-        description: 'Wrap text in cells',
+        description: 'Wrap text',
         required: false,
       },
       {
         name: 'shrinkToFit',
         type: 'boolean',
-        description: 'Shrink text to fit cell',
+        description: 'Shrink to fit',
         required: false,
       },
       {
         name: 'indent',
         type: 'number',
-        description: 'Text indent level (0-255)',
+        description: 'Indent level (0-255)',
         required: false,
       },
       {
         name: 'textRotation',
         type: 'number',
-        description: 'Text rotation angle in degrees (0-180)',
+        description: 'Rotation angle (0-180)',
         required: false,
       },
     ],
@@ -175,18 +175,18 @@
   },
   {
     name: 'excel_center_text',
-    description: 'Quickly center text horizontally and vertically in a cell or range',
+    description: 'Center text horizontally and vertically',
     parameters: [
       {
         name: 'filename',
         type: 'string',
-        description: 'Name of the opened workbook',
+        description: 'Opened workbook name',
         required: true,
       },
       {
         name: 'worksheet',
         type: 'string',
-        description: 'Name of the worksheet',
+        description: 'Worksheet name',
         required: true,
       },
       {
@@ -198,7 +198,7 @@
       {
         name: 'endCell',
         type: 'string',
-        description: 'End cell for range (omit for single cell)',
+        description: 'End cell (optional)',
         required: false,
       },
     ],
@@ -207,18 +207,18 @@
   // Border Tools
   {
     name: 'excel_set_border',
-    description: 'Apply borders to a cell or range with customizable style and color',
+    description: 'Apply custom borders',
     parameters: [
       {
         name: 'filename',
         type: 'string',
-        description: 'Name of the opened workbook',
+        description: 'Opened workbook name',
         required: true,
       },
       {
         name: 'worksheet',
         type: 'string',
-        description: 'Name of the worksheet',
+        description: 'Worksheet name',
         required: true,
       },
       {
@@ -230,49 +230,49 @@
       {
         name: 'endCell',
         type: 'string',
-        description: 'End cell for range (omit for single cell)',
+        description: 'End cell (optional)',
         required: false,
       },
       {
         name: 'borderStyle',
         type: 'string',
-        description: 'Border style (thin, medium, thick, double, dotted, dashed, hair, mediumDashed, dashDot, mediumDashDot, dashDotDot, mediumDashDotDot, slantDashDot)',
+        description: 'Style (thin/medium/thick/double/dotted/dashed)',
         required: false,
       },
       {
         name: 'borderColor',
         type: 'string',
-        description: 'Border color in hex format (e.g., FF000000 for black)',
+        description: 'Color hex (e.g., FF000000)',
         required: false,
       },
       {
         name: 'top',
         type: 'boolean',
-        description: 'Apply top border',
+        description: 'Top border',
         required: false,
       },
       {
         name: 'bottom',
         type: 'boolean',
-        description: 'Apply bottom border',
+        description: 'Bottom border',
         required: false,
       },
       {
         name: 'left',
         type: 'boolean',
-        description: 'Apply left border',
+        description: 'Left border',
         required: false,
       },
       {
         name: 'right',
         type: 'boolean',
-        description: 'Apply right border',
+        description: 'Right border',
         required: false,
       },
       {
         name: 'diagonal',
         type: 'boolean',
-        description: 'Apply diagonal borders',
+        description: 'Diagonal borders',
         required: false,
       },
     ],
@@ -280,18 +280,18 @@
   },
   {
     name: 'excel_apply_all_borders',
-    description: 'Apply borders to all sides of a cell or range',
+    description: 'Apply borders all sides',
     parameters: [
       {
         name: 'filename',
         type: 'string',
-        description: 'Name of the opened workbook',
+        description: 'Opened workbook name',
         required: true,
       },
       {
         name: 'worksheet',
         type: 'string',
-        description: 'Name of the worksheet',
+        description: 'Worksheet name',
         required: true,
       },
       {
@@ -303,19 +303,19 @@
       {
         name: 'endCell',
         type: 'string',
-        description: 'End cell for range (omit for single cell)',
+        description: 'End cell (optional)',
         required: false,
       },
       {
         name: 'borderStyle',
         type: 'string',
-        description: 'Border style (default: thin)',
+        description: 'Style (default: thin)',
         required: false,
       },
       {
         name: 'borderColor',
         type: 'string',
-        description: 'Border color in hex (default: FF000000)',
+        description: 'Color hex (default: FF000000)',
         required: false,
       },
     ],
@@ -323,18 +323,18 @@
   },
   {
     name: 'excel_apply_outline_border',
-    description: 'Apply border only to the outline of a range',
+    description: 'Apply outline border only',
     parameters: [
       {
         name: 'filename',
         type: 'string',
-        description: 'Name of the opened workbook',
+        description: 'Opened workbook name',
         required: true,
       },
       {
         name: 'worksheet',
         type: 'string',
-        description: 'Name of the worksheet',
+        description: 'Worksheet name',
         required: true,
       },
       {
@@ -346,19 +346,19 @@
       {
         name: 'endCell',
         type: 'string',
-        description: 'End cell for range (omit for single cell)',
+        description: 'End cell (optional)',
         required: false,
       },
       {
         name: 'borderStyle',
         type: 'string',
-        description: 'Border style (default: thin)',
+        description: 'Style (default: thin)',
         required: false,
       },
       {
         name: 'borderColor',
         type: 'string',
-        description: 'Border color in hex (default: FF000000)',
+        description: 'Color hex (default: FF000000)',
         required: false,
       },
     ],
@@ -367,18 +367,18 @@
   // Fill/Background Tools
   {
     name: 'excel_set_background_color',
-    description: 'Set background color for a cell or range',
+    description: 'Set background color',
     parameters: [
       {
         name: 'filename',
         type: 'string',
-        description: 'Name of the opened workbook',
+        description: 'Opened workbook name',
         required: true,
       },
       {
         name: 'worksheet',
         type: 'string',
-        description: 'Name of the worksheet',
+        description: 'Worksheet name',
         required: true,
       },
       {
@@ -390,13 +390,13 @@
       {
         name: 'endCell',
         type: 'string',
-        description: 'End cell for range (omit for single cell)',
+        description: 'End cell (optional)',
         required: false,
       },
       {
         name: 'color',
         type: 'string',
-        description: 'Background color in hex format (e.g., FFFF0000 for red)',
+        description: 'Color hex (e.g., FFFF0000)',
         required: true,
       },
     ],
@@ -404,18 +404,18 @@
   },
   {
     name: 'excel_set_gradient_fill',
-    description: 'Apply gradient fill to a cell or range',
+    description: 'Apply gradient fill',
     parameters: [
       {
         name: 'filename',
         type: 'string',
-        description: 'Name of the opened workbook',
+        description: 'Opened workbook name',
         required: true,
       },
       {
         name: 'worksheet',
         type: 'string',
-        description: 'Name of the worksheet',
+        description: 'Worksheet name',
         required: true,
       },
       {
@@ -427,25 +427,25 @@
       {
         name: 'endCell',
         type: 'string',
-        description: 'End cell for range (omit for single cell)',
+        description: 'End cell (optional)',
         required: false,
       },
       {
         name: 'color1',
         type: 'string',
-        description: 'Start color in hex format',
+        description: 'Start color hex',
         required: true,
       },
       {
         name: 'color2',
         type: 'string',
-        description: 'End color in hex format',
+        description: 'End color hex',
         required: true,
       },
       {
         name: 'type',
         type: 'string',
-        description: 'Gradient type (horizontal, vertical, diagonal)',
+        description: 'Type (horizontal/vertical/diagonal)',
         required: false,
       },
     ],
@@ -454,18 +454,18 @@
   // Font Color Tools
   {
     name: 'excel_set_font_color',
-    description: 'Set font color for a cell or range',
+    description: 'Set font color',
     parameters: [
       {
         name: 'filename',
         type: 'string',
-        description: 'Name of the opened workbook',
+        description: 'Opened workbook name',
         required: true,
       },
       {
         name: 'worksheet',
         type: 'string',
-        description: 'Name of the worksheet',
+        description: 'Worksheet name',
         required: true,
       },
       {
@@ -477,13 +477,13 @@
       {
         name: 'endCell',
         type: 'string',
-        description: 'End cell for range (omit for single cell)',
+        description: 'End cell (optional)',
         required: false,
       },
       {
         name: 'color',
         type: 'string',
-        description: 'Font color in hex format (e.g., FF000000 for black)',
+        description: 'Color hex (e.g., FF000000)',
         required: true,
       },
     ],
@@ -492,18 +492,18 @@
   // Number Format Tools
   {
     name: 'excel_set_number_format',
-    description: 'Set number format for a cell or range',
+    description: 'Set number format',
     parameters: [
       {
         name: 'filename',
         type: 'string',
-        description: 'Name of the opened workbook',
+        description: 'Opened workbook name',
         required: true,
       },
       {
         name: 'worksheet',
         type: 'string',
-        description: 'Name of the worksheet',
+        description: 'Worksheet name',
         required: true,
       },
       {
@@ -515,13 +515,13 @@
       {
         name: 'endCell',
         type: 'string',
-        description: 'End cell for range (omit for single cell)',
+        description: 'End cell (optional)',
         required: false,
       },
       {
         name: 'format',
         type: 'string',
-        description: 'Number format code or preset (currency, percentage, number, date, time, datetime, fraction, scientific, text, or custom format)',
+        description: 'Format (currency/percentage/number/date/time or custom)',
         required: true,
       },
     ],
@@ -530,18 +530,18 @@
   // Style Presets
   {
     name: 'excel_apply_header_style',
-    description: 'Apply professional header style (bold, centered, gray background, bottom border)',
+    description: 'Apply header style preset',
     parameters: [
       {
         name: 'filename',
         type: 'string',
-        description: 'Name of the opened workbook',
+        description: 'Opened workbook name',
         required: true,
       },
       {
         name: 'worksheet',
         type: 'string',
-        description: 'Name of the worksheet',
+        description: 'Worksheet name',
         required: true,
       },
       {
@@ -553,19 +553,19 @@
       {
         name: 'endCell',
         type: 'string',
-        description: 'End cell for range',
+        description: 'End cell (optional)',
         required: false,
       },
       {
         name: 'backgroundColor',
         type: 'string',
-        description: 'Background color in hex (default: FFD3D3D3)',
+        description: 'Background hex (default: FFD3D3D3)',
         required: false,
       },
       {
         name: 'fontColor',
         type: 'string',
-        description: 'Font color in hex (default: FF000000)',
+        description: 'Font color hex (default: FF000000)',
         required: false,
       },
     ],
@@ -573,18 +573,18 @@
   },
   {
     name: 'excel_apply_title_style',
-    description: 'Apply professional title style (large, bold, centered, dark blue text)',
+    description: 'Apply title style preset',
     parameters: [
       {
         name: 'filename',
         type: 'string',
-        description: 'Name of the opened workbook',
+        description: 'Opened workbook name',
         required: true,
       },
       {
         name: 'worksheet',
         type: 'string',
-        description: 'Name of the worksheet',
+        description: 'Worksheet name',
         required: true,
       },
       {
@@ -596,19 +596,19 @@
       {
         name: 'endCell',
         type: 'string',
-        description: 'End cell for range (omit for single cell)',
+        description: 'End cell (optional)',
         required: false,
       },
       {
         name: 'fontSize',
         type: 'number',
-        description: 'Font size in points (default: 16)',
+        description: 'Size (default: 16)',
         required: false,
       },
       {
         name: 'color',
         type: 'string',
-        description: 'Font color in hex (default: FF1F4E78)',
+        description: 'Color hex (default: FF1F4E78)',
         required: false,
       },
     ],
@@ -616,18 +616,18 @@
   },
   {
     name: 'excel_apply_currency_format',
-    description: 'Apply currency formatting with 2 decimal places',
+    description: 'Apply currency format',
     parameters: [
       {
         name: 'filename',
         type: 'string',
-        description: 'Name of the opened workbook',
+        description: 'Opened workbook name',
         required: true,
       },
       {
         name: 'worksheet',
         type: 'string',
-        description: 'Name of the worksheet',
+        description: 'Worksheet name',
         required: true,
       },
       {
@@ -639,19 +639,19 @@
       {
         name: 'endCell',
         type: 'string',
-        description: 'End cell for range (omit for single cell)',
+        description: 'End cell (optional)',
         required: false,
       },
       {
         name: 'symbol',
         type: 'string',
-        description: 'Currency symbol (default: $)',
+        description: 'Symbol (default: $)',
         required: false,
       },
       {
         name: 'decimalPlaces',
         type: 'number',
-        description: 'Number of decimal places (default: 2)',
+        description: 'Decimals (default: 2)',
         required: false,
       },
     ],
@@ -659,18 +659,18 @@
   },
   {
     name: 'excel_apply_percentage_format',
-    description: 'Apply percentage formatting',
+    description: 'Apply percentage format',
     parameters: [
       {
         name: 'filename',
         type: 'string',
-        description: 'Name of the opened workbook',
+        description: 'Opened workbook name',
         required: true,
       },
       {
         name: 'worksheet',
         type: 'string',
-        description: 'Name of the worksheet',
+        description: 'Worksheet name',
         required: true,
       },
       {
@@ -682,13 +682,13 @@
       {
         name: 'endCell',
         type: 'string',
-        description: 'End cell for range (omit for single cell)',
+        description: 'End cell (optional)',
         required: false,
       },
       {
         name: 'decimalPlaces',
         type: 'number',
-        description: 'Number of decimal places (default: 2)',
+        description: 'Decimals (default: 2)',
         required: false,
       },
     ],
@@ -696,18 +696,18 @@
   },
   {
     name: 'excel_apply_date_format',
-    description: 'Apply date formatting',
+    description: 'Apply date format',
     parameters: [
       {
         name: 'filename',
         type: 'string',
-        description: 'Name of the opened workbook',
+        description: 'Opened workbook name',
         required: true,
       },
       {
         name: 'worksheet',
         type: 'string',
-        description: 'Name of the worksheet',
+        description: 'Worksheet name',
         required: true,
       },
       {
@@ -719,13 +719,13 @@
       {
         name: 'endCell',
         type: 'string',
-        description: 'End cell for range (omit for single cell)',
+        description: 'End cell (optional)',
         required: false,
       },
       {
         name: 'format',
         type: 'string',
-        description: 'Date format preset (short, long, iso, or custom format like dd/mm/yyyy)',
+        description: 'Format (short/long/iso or custom)',
         required: false,
       },
     ],
@@ -733,54 +733,54 @@
   },
   {
     name: 'excel_apply_table_style',
-    description: 'Apply professional table formatting with headers and alternating row colors',
+    description: 'Apply table style preset',
     parameters: [
       {
         name: 'filename',
         type: 'string',
-        description: 'Name of the opened workbook',
+        description: 'Opened workbook name',
         required: true,
       },
       {
         name: 'worksheet',
         type: 'string',
-        description: 'Name of the worksheet',
+        description: 'Worksheet name',
         required: true,
       },
       {
         name: 'startCell',
         type: 'string',
-        description: 'Start cell of table (e.g., A1)',
+        description: 'Table start (e.g., A1)',
         required: true,
       },
       {
         name: 'endCell',
         type: 'string',
-        description: 'End cell of table (e.g., D10)',
+        description: 'Table end (e.g., D10)',
         required: true,
       },
       {
         name: 'headerBackgroundColor',
         type: 'string',
-        description: 'Header background color in hex (default: FFD3D3D3)',
+        description: 'Header bg hex (default: FFD3D3D3)',
         required: false,
       },
       {
         name: 'headerFontColor',
         type: 'string',
-        description: 'Header font color in hex (default: FF000000)',
+        description: 'Header font hex (default: FF000000)',
         required: false,
       },
       {
         name: 'alternateRowColor',
         type: 'string',
-        description: 'Alternate row background color in hex (default: FFF9F9F9)',
+        description: 'Alt row hex (default: FFF9F9F9)',
         required: false,
       },
       {
         name: 'hasHeader',
         type: 'boolean',
-        description: 'Whether first row is header (default: true)',
+        description: 'Has header (default: true)',
         required: false,
       },
     ],
@@ -789,18 +789,18 @@
   // Rich Text
   {
     name: 'excel_set_rich_text',
-    description: 'Apply rich text formatting with multiple styles in a single cell',
+    description: 'Apply rich text formatting',
     parameters: [
       {
         name: 'filename',
         type: 'string',
-        description: 'Name of the opened workbook',
+        description: 'Opened workbook name',
         required: true,
       },
       {
         name: 'worksheet',
         type: 'string',
-        description: 'Name of the worksheet',
+        description: 'Worksheet name',
         required: true,
       },
       {
@@ -812,16 +812,16 @@
       {
         name: 'richText',
         type: 'array',
-        description: 'Array of text segments with formatting',
+        description: 'Text segments with formatting',
         required: true,
         properties: {
-          text: { type: 'string', description: 'Text segment' },
+          text: { type: 'string', description: 'Text' },
           bold: { type: 'boolean' },
           italic: { type: 'boolean' },
           underline: { type: 'boolean' },
-          fontColor: { type: 'string', description: 'Font color in hex' },
-          fontSize: { type: 'number', description: 'Font size' },
-          fontName: { type: 'string', description: 'Font name' }
+          fontColor: { type: 'string', description: 'Color hex' },
+          fontSize: { type: 'number', description: 'Size' },
+          fontName: { type: 'string', description: 'Font' }
         }
       },
     ],
@@ -830,18 +830,18 @@
   // Existing tools continue...
   {
     name: 'excel_set_cell_format',
-    description: 'Apply formatting to a cell (font, color, borders, alignment)',
+    description: 'Apply cell formatting',
     parameters: [
       {
         name: 'filename',
         type: 'string',
-        description: 'Name of the opened workbook',
+        description: 'Opened workbook name',
         required: true,
       },
       {
         name: 'worksheet',
         type: 'string',
-        description: 'Name of the worksheet',
+        description: 'Worksheet name',
         required: true,
       },
       {
@@ -853,7 +853,7 @@
       {
         name: 'format',
         type: 'object',
-        description: 'Formatting options object',
+        description: 'Format options',
         required: true,
         properties: {
           bold: { type: 'boolean' },
@@ -875,36 +875,36 @@
   },
   {
     name: 'excel_set_range_format',
-    description: 'Apply formatting to a range of cells',
+    description: 'Apply range formatting',
     parameters: [
       {
         name: 'filename',
         type: 'string',
-        description: 'Name of the opened workbook',
+        description: 'Opened workbook name',
         required: true,
       },
       {
         name: 'worksheet',
         type: 'string',
-        description: 'Name of the worksheet',
+        description: 'Worksheet name',
         required: true,
       },
       {
         name: 'startCell',
         type: 'string',
-        description: 'Start cell of range (e.g., A1)',
+        description: 'Range start (e.g., A1)',
         required: true,
       },
       {
         name: 'endCell',
         type: 'string',
-        description: 'End cell of range (e.g., C10)',
+        description: 'Range end (e.g., C10)',
         required: true,
       },
       {
         name: 'format',
         type: 'object',
-        description: 'Formatting options object',
+        description: 'Format options',
         required: true,
         properties: {
           bold: { type: 'boolean' },
@@ -920,18 +920,18 @@
   },
   {
     name: 'excel_auto_fit_columns',
-    description: 'Auto-fit column widths to content',
+    description: 'Auto-fit columns',
     parameters: [
       {
         name: 'filename',
         type: 'string',
-        description: 'Name of the opened workbook',
+        description: 'Opened workbook name',
         required: true,
       },
       {
         name: 'worksheet',
         type: 'string',
-        description: 'Name of the worksheet',
+        description: 'Worksheet name',
         required: true,
       },
       {
@@ -951,30 +951,30 @@
   },
   {
     name: 'excel_set_column_width',
-    description: 'Set width for a specific column',
+    description: 'Set column width',
     parameters: [
       {
         name: 'filename',
         type: 'string',
-        description: 'Name of the opened workbook',
+        description: 'Opened workbook name',
         required: true,
       },
       {
         name: 'worksheet',
         type: 'string',
-        description: 'Name of the worksheet',
+        description: 'Worksheet name',
         required: true,
       },
       {
         name: 'column',
         type: 'string',
-        description: 'Column letter (e.g., A)',
+        description: 'Column (e.g., A)',
         required: true,
       },
       {
         name: 'width',
         type: 'number',
-        description: 'Column width',
+        description: 'Width',
         required: true,
       },
     ],
@@ -982,18 +982,18 @@
   },
   {
     name: 'excel_set_row_height',
-    description: 'Set height for a specific row',
+    description: 'Set row height',
     parameters: [
       {
         name: 'filename',
         type: 'string',
-        description: 'Name of the opened workbook',
+        description: 'Opened workbook name',
         required: true,
       },
       {
         name: 'worksheet',
         type: 'string',
-        description: 'Name of the worksheet',
+        description: 'Worksheet name',
         required: true,
       },
       {
@@ -1005,7 +1005,7 @@
       {
         name: 'height',
         type: 'number',
-        description: 'Row height',
+        description: 'Height',
         required: true,
       },
     ],
@@ -1013,24 +1013,24 @@
   },
   {
     name: 'excel_freeze_panes',
-    description: 'Freeze panes for easier navigation',
+    description: 'Freeze panes',
     parameters: [
       {
         name: 'filename',
         type: 'string',
-        description: 'Name of the opened workbook',
+        description: 'Opened workbook name',
         required: true,
       },
       {
         name: 'worksheet',
         type: 'string',
-        description: 'Name of the worksheet',
+        description: 'Worksheet name',
         required: true,
       },
       {
         name: 'cellAddress',
         type: 'string',
-        description: 'Cell to freeze at (e.g., B2 freezes row 1 and column A)',
+        description: 'Freeze at cell (e.g., B2)',
         required: true,
       },
     ],
@@ -1038,30 +1038,30 @@
   },
   {
     name: 'excel_set_print_area',
-    description: 'Set the print area for a worksheet',
+    description: 'Set print area',
     parameters: [
       {
         name: 'filename',
         type: 'string',
-        description: 'Name of the opened workbook',
+        description: 'Opened workbook name',
         required: true,
       },
       {
         name: 'worksheet',
         type: 'string',
-        description: 'Name of the worksheet',
+        description: 'Worksheet name',
         required: true,
       },
       {
         name: 'startCell',
         type: 'string',
-        description: 'Start cell of print area (e.g., A1)',
+        description: 'Area start (e.g., A1)',
         required: true,
       },
       {
         name: 'endCell',
         type: 'string',
-        description: 'End cell of print area (e.g., G50)',
+        description: 'Area end (e.g., G50)',
         required: true,
       },
     ],
@@ -1069,24 +1069,24 @@
   },
   {
     name: 'excel_add_header_footer',
-    description: 'Add header and footer to worksheet',
+    description: 'Add header/footer',
     parameters: [
       {
         name: 'filename',
         type: 'string',
-        description: 'Name of the opened workbook',
+        description: 'Opened workbook name',
         required: true,
       },
       {
         name: 'worksheet',
         type: 'string',
-        description: 'Name of the worksheet',
+        description: 'Worksheet name',
         required: true,
       },
       {
         name: 'header',
         type: 'string',
-        description: 'Header text (use &[Page], &[Pages], &[Date], &[Time], &[File])',
+        description: 'Header (use &[Page], &[Date], etc.)',
         required: false,
       },
       {
