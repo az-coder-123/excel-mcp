@@ -12,4 +12,5 @@ export { CommentDataHandlers } from './comment-data-handlers.js';
 export { AdvancedDataHandlers } from './advanced-data-handlers.js';
 export { AnalysisHandlers } from './analysis-handlers.js';
 export { AccountingHandlers } from './accounting-handlers.js';
+export { AdvancedAccountingHandlers } from './advanced-accounting-handlers.js';
 export { SystemHandlers } from './system-handlers.js';

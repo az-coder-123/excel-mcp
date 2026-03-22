@@ -15,6 +15,7 @@ import { PROTECTION_TOOLS } from './protection-tools.js';
 import { ADVANCED_DATA_TOOLS } from './advanced-data-tools.js';
 import { ANALYSIS_TOOLS } from './analysis-tools.js';
 import { ACCOUNTING_TOOLS } from './accounting-tools.js';
+import { ADVANCED_ACCOUNTING_TOOLS } from './advanced-accounting-tools.js';
 import { SYSTEM_TOOLS } from './system-tools.js';
 
 /**
@@ -32,6 +33,7 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
   ...ADVANCED_DATA_TOOLS,
   ...ANALYSIS_TOOLS,
   ...ACCOUNTING_TOOLS,
+  ...ADVANCED_ACCOUNTING_TOOLS,
   ...SYSTEM_TOOLS,
 ];
 

@@ -59,6 +59,41 @@ This document summarizes the new formatting and accounting tools added to the Ex
 - `excel_check_balance` - Verify debits equal credits (accounting balance check)
 - `excel_find_anomalies` - Identify outliers using standard deviation
 
+## Advanced Accounting Tools
+
+### Financial Investment Analysis
+- `excel_calculate_npv` - Calculate Net Present Value (NPV) for investment evaluation
+  - Discount future cash flows to present value
+  - Essential for investment decision-making
+- `excel_calculate_irr` - Calculate Internal Rate of Return (IRR)
+  - Find discount rate that makes NPV equal to zero
+  - Expected annual return of an investment
+
+### Financial Ratios
+- `excel_calculate_financial_ratio` - Calculate key financial ratios:
+  - **Current Ratio**: Measures ability to pay short-term obligations
+  - **Quick Ratio**: Liquidity without inventory
+  - **Debt-to-Equity**: Financial leverage
+  - **Return on Equity (ROE)**: Profitability relative to equity
+  - **Profit Margin**: Net profit as percentage of revenue
+
+### Loan & Debt Management
+- `excel_create_amortization_schedule` - Generate loan amortization table:
+  - Payment breakdown (principal vs interest)
+  - Remaining balance after each payment
+  - Useful for mortgages, car loans, business loans
+- `excel_create_aging_report` - Accounts receivable/payable aging:
+  - Categorize by days past due: 0-30, 31-60, 61-90, 91-120, 120+ days
+  - Track overdue invoices and payments
+
+### Tax & Currency
+- `excel_calculate_tax` - Calculate tax amounts at specified rates
+  - Apply tax percentage to a range of values
+  - Support VAT, GST, sales tax calculations
+- `excel_convert_currency` - Convert currency amounts:
+  - Apply exchange rate to convert values
+  - Useful for multi-currency financial reporting
+
 ## Usage Examples
 
 ### Example 1: Create Professional Report
@@ -221,6 +256,136 @@ await excel_set_rich_text({
     }
   ]
 });
+```
+
+### Example 5: Investment Analysis (NPV & IRR)
+
+```javascript
+// Cash flow data in A1:A6: -10000, 3000, 4000, 3000, 2000, 1000
+const npvResult = await excel_calculate_npv({
+  filename: "investment_analysis",
+  worksheet: "Project A",
+  rate: 0.1, // 10% discount rate
+  valuesRange: "A1:A6"
+});
+
+console.log(`NPV: $${npvResult.data?.npv.toFixed(2)}`);
+
+// Calculate IRR
+const irrResult = await excel_calculate_irr({
+  filename: "investment_analysis",
+  worksheet: "Project A",
+  valuesRange: "A1:A6",
+  guess: 0.1 // Initial guess
+});
+
+console.log(`IRR: ${(irrResult.data?.irr * 100).toFixed(2)}%`);
+```
+
+### Example 6: Loan Amortization Schedule
+
+```javascript
+// Create amortization schedule for a mortgage
+await excel_create_amortization_schedule({
+  filename: "loan",
+  worksheet: "Mortgage",
+  startCell: "A1",
+  principal: 500000, // $500,000 loan
+  annualRate: 0.05, // 5% annual interest
+  numberOfPeriods: 360 // 30 years (360 months)
+});
+
+// Result: Table with columns:
+// - Period: 1, 2, 3, ...
+// - Payment: Monthly payment amount
+// - Principal: Principal portion
+// - Interest: Interest portion
+// - Balance: Remaining balance
+```
+
+### Example 7: Financial Ratios Analysis
+
+```javascript
+// Calculate Current Ratio (Current Assets / Current Liabilities)
+await excel_calculate_financial_ratio({
+  filename: "financials",
+  worksheet: "Balance Sheet",
+  ratioType: "current",
+  numeratorRange: "B2:B10", // Current Assets
+  denominatorRange: "B15:B20" // Current Liabilities
+});
+
+// Calculate ROE (Net Income / Shareholder Equity)
+await excel_calculate_financial_ratio({
+  filename: "financials",
+  worksheet: "Income Statement",
+  ratioType: "return-on-equity",
+  numeratorRange: "B30", // Net Income
+  denominatorRange: "B45" // Shareholder Equity
+});
+
+// Calculate Profit Margin (Net Income / Revenue)
+await excel_calculate_financial_ratio({
+  filename: "financials",
+  worksheet: "Income Statement",
+  ratioType: "profit-margin",
+  numeratorRange: "B30", // Net Income
+  denominatorRange: "B5" // Revenue
+});
+```
+
+### Example 8: Accounts Receivable Aging
+
+```javascript
+// Create aging report
+await excel_create_aging_report({
+  filename: "receivables",
+  worksheet: "Invoices",
+  invoiceDateColumn: "A", // Invoice dates
+  amountColumn: "B", // Invoice amounts
+  asOfDate: "2024-12-31", // As of December 31, 2024
+  outputStartCell: "E1"
+});
+
+// Result: Aging summary table
+// - 0-30 days: Total amount
+// - 31-60 days: Total amount
+// - 61-90 days: Total amount
+// - 91-120 days: Total amount
+// - 120+ days: Total amount
+// - Total Outstanding: Sum of all categories
+```
+
+### Example 9: Tax Calculation
+
+```javascript
+// Calculate VAT (10%) for a range of prices
+await excel_calculate_tax({
+  filename: "sales",
+  worksheet: "Products",
+  amountRange: "B2:B100", // Prices
+  taxRate: 10, // 10% VAT
+  outputRange: "C2:C100" // Tax amounts
+});
+
+// Prices in B2:B100: 100, 200, 300...
+// Tax in C2:C100: 10, 20, 30...
+```
+
+### Example 10: Currency Conversion
+
+```javascript
+// Convert USD to VND
+await excel_convert_currency({
+  filename: "financial_report",
+  worksheet: "Summary",
+  amountRange: "B2:B50", // USD amounts
+  exchangeRate: 24000, // 1 USD = 24,000 VND
+  outputRange: "C2:C50" // VND amounts
+});
+
+// USD in B2:B50: 100, 200, 300...
+// VND in C2:C50: 2,400,000, 4,800,000, 7,200,000...
 ```
 
 ## Color Codes

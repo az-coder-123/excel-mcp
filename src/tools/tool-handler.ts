@@ -17,6 +17,7 @@ import {
   AdvancedDataHandlers,
   AnalysisHandlers,
   AccountingHandlers,
+  AdvancedAccountingHandlers,
   SystemHandlers
 } from './handlers/index.js';
 
@@ -31,6 +32,7 @@ export class ToolHandler {
   private advancedDataHandlers: AdvancedDataHandlers;
   private analysisHandlers: AnalysisHandlers;
   private accountingHandlers: AccountingHandlers;
+  private advancedAccountingHandlers: AdvancedAccountingHandlers;
   private systemHandlers: SystemHandlers;
 
   constructor(
@@ -48,6 +50,7 @@ export class ToolHandler {
     this.advancedDataHandlers = new AdvancedDataHandlers(excelService);
     this.analysisHandlers = new AnalysisHandlers(excelService['activeWorkbooks']);
     this.accountingHandlers = new AccountingHandlers(excelService['accounting']);
+    this.advancedAccountingHandlers = new AdvancedAccountingHandlers(excelService['advancedAccounting']);
     this.systemHandlers = new SystemHandlers(excelService, permissionChecker, logger);
   }
 
@@ -305,6 +308,22 @@ export class ToolHandler {
           return await this.accountingHandlers.checkBalance(args);
         case 'excel_find_anomalies':
           return await this.accountingHandlers.findAnomalies(args);
+
+        // Advanced Accounting operations
+        case 'excel_calculate_npv':
+          return await this.advancedAccountingHandlers.calculateNPV(args);
+        case 'excel_calculate_irr':
+          return await this.advancedAccountingHandlers.calculateIRR(args);
+        case 'excel_calculate_financial_ratio':
+          return await this.advancedAccountingHandlers.calculateFinancialRatio(args);
+        case 'excel_create_amortization_schedule':
+          return await this.advancedAccountingHandlers.createAmortizationSchedule(args);
+        case 'excel_create_aging_report':
+          return await this.advancedAccountingHandlers.createAgingReport(args);
+        case 'excel_calculate_tax':
+          return await this.advancedAccountingHandlers.calculateTax(args);
+        case 'excel_convert_currency':
+          return await this.advancedAccountingHandlers.convertCurrency(args);
 
         // System operations
         case 'excel_health_check':

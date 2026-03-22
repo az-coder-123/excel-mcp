@@ -18,6 +18,7 @@ import { ExcelCellOperations } from './excel-cell-operations.js';
 import { ExcelStructureOperations } from './excel-structure-operations.js';
 import { ExcelFormatting } from './excel-formatting.js';
 import { ExcelAccounting } from './excel-accounting.js';
+import { ExcelAdvancedAccounting } from './excel-advanced-accounting.js';
 
 export class ExcelService {
   private workbookManager: ExcelWorkbookManager;
@@ -25,6 +26,7 @@ export class ExcelService {
   private structureOperations: ExcelStructureOperations;
   private formatting: ExcelFormatting;
   public accounting: ExcelAccounting;
+  public advancedAccounting: ExcelAdvancedAccounting;
   public activeWorkbooks: Map<string, ExcelJS.Workbook>;
   private logger: Logger;
 
@@ -36,6 +38,7 @@ export class ExcelService {
     this.structureOperations = new ExcelStructureOperations(permissionChecker, logger, this.activeWorkbooks);
     this.formatting = new ExcelFormatting(permissionChecker, logger, this.activeWorkbooks);
     this.accounting = new ExcelAccounting(permissionChecker, logger, this.activeWorkbooks);
+    this.advancedAccounting = new ExcelAdvancedAccounting(permissionChecker, logger, this.activeWorkbooks);
   }
 
   // Workbook operations
