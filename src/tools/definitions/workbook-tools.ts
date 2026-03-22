@@ -70,4 +70,42 @@ export const WORKBOOK_TOOLS: ToolDefinition[] = [
     ],
     requiredPermissions: ['read'],
   },
+  {
+    name: 'excel_export_worksheet_to_new_file',
+    description: 'Export worksheet to new Excel file',
+    parameters: [
+      {
+        name: 'filename',
+        type: 'string',
+        description: 'Opened workbook name',
+        required: true,
+      },
+      {
+        name: 'worksheet',
+        type: 'string',
+        description: 'Worksheet name to export',
+        required: true,
+      },
+      {
+        name: 'newFilePath',
+        type: 'string',
+        description: 'Full path for new file (e.g., /path/to/newfile.xlsx)',
+        required: true,
+      },
+    ],
+    requiredPermissions: ['read', 'write'],
+  },
+  {
+    name: 'excel_get_workbook_context',
+    description: 'Get workbook context and state',
+    parameters: [
+      {
+        name: 'filename',
+        type: 'string',
+        description: 'Workbook name to check',
+        required: true,
+      },
+    ],
+    requiredPermissions: ['read'],
+  },
 ];

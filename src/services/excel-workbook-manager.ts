@@ -4,8 +4,8 @@
  */
 
 import ExcelJS from 'exceljs';
-import { WorkbookInfo, WorksheetInfo, OperationResult } from '../types/index.js';
 import { PermissionChecker } from '../security/permission-checker.js';
+import { OperationResult, WorkbookInfo, WorksheetInfo } from '../types/index.js';
 import { Logger } from '../utils/logger.js';
 
 export class ExcelWorkbookManager {
@@ -83,7 +83,10 @@ export class ExcelWorkbookManager {
 
       this.activeWorkbooks.set(filename, workbook);
 
-      this.logger.info(`Created new workbook: ${filename}`);
+      // Auto-save the workbook to disk
+      await workbook.xlsx.writeFile(filename);
+
+      this.logger.info(`Created and saved new workbook: ${filename}`);
 
       return {
         success: true,
@@ -101,6 +104,7 @@ export class ExcelWorkbookManager {
       };
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error';
+      this.logger.error(`Failed to create workbook: ${message}`);
       return { success: false, error: message };
     }
   }
@@ -121,7 +125,7 @@ export class ExcelWorkbookManager {
       }
 
       const savePath = outputPath || filename;
-      
+
       // Validate output path
       const pathValidation = this.permissionChecker.isPathAllowed(savePath);
       if (!pathValidation.success) {
@@ -149,6 +153,100 @@ export class ExcelWorkbookManager {
       return { success: true };
     }
     return { success: false, error: `Workbook "${filename}" not found` };
+  }
+
+  /**
+   * Export worksheet to new file (simplified - copy values only)
+   */
+  public async exportWorksheetToNewFile(
+    filename: string,
+    worksheetName: string,
+    newFilePath: string
+  ): Promise<OperationResult<void>> {
+    try {
+      const validation = this.permissionChecker.hasPermission('write');
+      if (!validation.success) {
+        return { success: false, error: validation.error };
+      }
+
+      const sourceWorkbook = this.activeWorkbooks.get(filename);
+      if (!sourceWorkbook) {
+        return { success: false, error: `Workbook "${filename}" not opened` };
+      }
+
+      const sourceWorksheet = sourceWorkbook.getWorksheet(worksheetName);
+      if (!sourceWorksheet) {
+        return { success: false, error: `Worksheet "${worksheetName}" not found` };
+      }
+
+      // Create new workbook for export
+      const newWorkbook = new ExcelJS.Workbook();
+      const newWorksheet = newWorkbook.addWorksheet(worksheetName);
+
+      // Copy all data by reading cells directly
+      for (let row = 1; row <= sourceWorksheet.rowCount; row++) {
+        for (let col = 1; col <= sourceWorksheet.columnCount; col++) {
+          const sourceCell = sourceWorksheet.getCell(row, col);
+          const newCell = newWorksheet.getCell(row, col);
+          if (sourceCell.value !== null && sourceCell.value !== undefined) {
+            newCell.value = sourceCell.value;
+          }
+        }
+      }
+
+      // Save to new path
+      await newWorkbook.xlsx.writeFile(newFilePath);
+
+      this.logger.info(`Exported worksheet "${worksheetName}" to: ${newFilePath}`);
+
+      return { success: true };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      this.logger.error(`Failed to export worksheet: ${message}`);
+      return { success: false, error: message };
+    }
+  }
+
+  /**
+   * Get workbook context
+   */
+  public getWorkbookContext(filename: string): OperationResult<{
+    isOpen: boolean;
+    filePath: string;
+    worksheets: WorksheetInfo[];
+    currentWorksheet: string | null;
+  }> {
+    const workbook = this.activeWorkbooks.get(filename);
+
+    if (!workbook) {
+      return {
+        success: true,
+        data: {
+          isOpen: false,
+          filePath: filename,
+          worksheets: [],
+          currentWorksheet: null,
+        },
+      };
+    }
+
+    const worksheets: WorksheetInfo[] = workbook.worksheets.map((ws, index) => ({
+      name: ws.name,
+      index: index,
+      rowCount: ws.rowCount,
+      columnCount: ws.columnCount,
+      hidden: ws.state === 'hidden' || ws.state === 'veryHidden',
+    }));
+
+    return {
+      success: true,
+      data: {
+        isOpen: true,
+        filePath: filename,
+        worksheets,
+        currentWorksheet: worksheets[0]?.name || null,
+      },
+    };
   }
 
   /**

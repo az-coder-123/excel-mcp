@@ -4,22 +4,22 @@
  */
 
 import ExcelJS from 'exceljs';
-import { 
-  CellValue, 
-  WorksheetInfo, 
-  WorkbookInfo, 
-  OperationResult,
-  CellRange 
-} from '../types/index.js';
 import { PermissionChecker } from '../security/permission-checker.js';
+import {
+  CellRange,
+  CellValue,
+  OperationResult,
+  WorkbookInfo,
+  WorksheetInfo
+} from '../types/index.js';
 import { Logger } from '../utils/logger.js';
-import { ExcelWorkbookManager } from './excel-workbook-manager.js';
-import { ExcelCellOperations } from './excel-cell-operations.js';
-import { ExcelStructureOperations } from './excel-structure-operations.js';
-import { ExcelFormatting } from './excel-formatting.js';
 import { ExcelAccounting } from './excel-accounting.js';
 import { ExcelAdvancedAccounting } from './excel-advanced-accounting.js';
+import { ExcelCellOperations } from './excel-cell-operations.js';
+import { ExcelFormatting } from './excel-formatting.js';
 import { ExcelFormulaAnalyzer } from './excel-formula-analyzer.js';
+import { ExcelStructureOperations } from './excel-structure-operations.js';
+import { ExcelWorkbookManager } from './excel-workbook-manager.js';
 
 export class ExcelService {
   private workbookManager: ExcelWorkbookManager;
@@ -59,6 +59,23 @@ export class ExcelService {
 
   public closeWorkbook(filename: string): OperationResult<void> {
     return this.workbookManager.closeWorkbook(filename);
+  }
+
+  public async exportWorksheetToNewFile(
+    filename: string,
+    worksheetName: string,
+    newFilePath: string
+  ): Promise<OperationResult<void>> {
+    return this.workbookManager.exportWorksheetToNewFile(filename, worksheetName, newFilePath);
+  }
+
+  public getWorkbookContext(filename: string): OperationResult<{
+    isOpen: boolean;
+    filePath: string;
+    worksheets: WorksheetInfo[];
+    currentWorksheet: string | null;
+  }> {
+    return this.workbookManager.getWorkbookContext(filename);
   }
 
   // Cell operations

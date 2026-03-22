@@ -3,24 +3,25 @@
  * Single Responsibility: Delegates to specialized handler modules
  */
 
-import { ExcelService } from '../services/excel-service.js';
 import { PermissionChecker } from '../security/permission-checker.js';
-import { Logger } from '../utils/logger.js';
+import { ExcelService } from '../services/excel-service.js';
 import { OperationResult } from '../types/index.js';
-import { getToolDefinition } from './tool-definitions.js';
+import { Logger } from '../utils/logger.js';
 import {
-  WorkbookHandlers,
-  CellHandlers,
-  WorksheetHandlers,
-  FormattingHandlers,
-  CommentDataHandlers,
-  AdvancedDataHandlers,
-  AnalysisHandlers,
   AccountingHandlers,
   AdvancedAccountingHandlers,
+  AdvancedDataHandlers,
+  AnalysisHandlers,
+  CellHandlers,
+  CommentDataHandlers,
+  ExtendedFormattingHandlers,
+  FormattingHandlers,
   FormulaAnalysisHandlers,
-  SystemHandlers
+  SystemHandlers,
+  WorkbookHandlers,
+  WorksheetHandlers
 } from './handlers/index.js';
+import { getToolDefinition } from './tool-definitions.js';
 
 export class ToolHandler {
   private permissionChecker: PermissionChecker;
@@ -29,6 +30,7 @@ export class ToolHandler {
   private cellHandlers: CellHandlers;
   private worksheetHandlers: WorksheetHandlers;
   private formattingHandlers: FormattingHandlers;
+  private extendedFormattingHandlers: ExtendedFormattingHandlers;
   private commentDataHandlers: CommentDataHandlers;
   private advancedDataHandlers: AdvancedDataHandlers;
   private analysisHandlers: AnalysisHandlers;
@@ -48,6 +50,7 @@ export class ToolHandler {
     this.cellHandlers = new CellHandlers(excelService);
     this.worksheetHandlers = new WorksheetHandlers(excelService);
     this.formattingHandlers = new FormattingHandlers(excelService);
+    this.extendedFormattingHandlers = new ExtendedFormattingHandlers(excelService);
     this.commentDataHandlers = new CommentDataHandlers(excelService);
     this.advancedDataHandlers = new AdvancedDataHandlers(excelService);
     this.analysisHandlers = new AnalysisHandlers(excelService['activeWorkbooks']);
@@ -95,6 +98,10 @@ export class ToolHandler {
           return await this.workbookHandlers.handleSaveWorkbook(args);
         case 'excel_close_workbook':
           return await this.workbookHandlers.handleCloseWorkbook(args);
+        case 'excel_export_worksheet_to_new_file':
+          return await this.workbookHandlers.handleExportWorksheetToNewFile(args);
+        case 'excel_get_workbook_context':
+          return await this.workbookHandlers.handleGetWorkbookContext(args);
 
         // Cell operations
         case 'excel_read_cell':
@@ -201,6 +208,12 @@ export class ToolHandler {
           return await this.formattingHandlers.handleApplyTableStyle(args);
         case 'excel_set_rich_text':
           return await this.formattingHandlers.handleSetRichText(args);
+
+        // Extended formatting operations
+        case 'excel_format_worksheet':
+          return await this.extendedFormattingHandlers.handleFormatWorksheet(args);
+        case 'excel_batch_format':
+          return await this.extendedFormattingHandlers.handleBatchFormat(args);
 
         // Comment and data operations
         case 'excel_add_comment':

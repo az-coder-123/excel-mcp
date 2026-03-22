@@ -3,8 +3,8 @@
  * Single Responsibility: Workbook lifecycle operations
  */
 
-import { OperationResult } from '../../types/index.js';
 import { ExcelService } from '../../services/excel-service.js';
+import { OperationResult } from '../../types/index.js';
 import { BaseHandler } from './base-handler.js';
 
 export class WorkbookHandlers extends BaseHandler {
@@ -52,5 +52,27 @@ export class WorkbookHandlers extends BaseHandler {
       return { success: false, error: 'Missing required parameter: filename' };
     }
     return this.excelService.closeWorkbook(filename);
+  }
+
+  async handleExportWorksheetToNewFile(args: Record<string, unknown>): Promise<OperationResult> {
+    const filename = this.getStringArg(args, 'filename');
+    const worksheet = this.getStringArg(args, 'worksheet');
+    const newFilePath = this.getStringArg(args, 'newFilePath');
+    
+    if (!filename || !worksheet || !newFilePath) {
+      return { success: false, error: 'Missing required parameters' };
+    }
+
+    return this.excelService.exportWorksheetToNewFile(filename, worksheet, newFilePath);
+  }
+
+  async handleGetWorkbookContext(args: Record<string, unknown>): Promise<OperationResult> {
+    const filename = this.getStringArg(args, 'filename');
+    
+    if (!filename) {
+      return { success: false, error: 'Missing required parameter: filename' };
+    }
+
+    return this.excelService.getWorkbookContext(filename);
   }
 }
