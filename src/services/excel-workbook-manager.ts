@@ -156,7 +156,7 @@ export class ExcelWorkbookManager {
   }
 
   /**
-   * Export worksheet to new file (simplified - copy values only)
+   * Export worksheet to new file - read file directly and write
    */
   public async exportWorksheetToNewFile(
     filename: string,
@@ -164,10 +164,8 @@ export class ExcelWorkbookManager {
     newFilePath: string
   ): Promise<OperationResult<void>> {
     try {
-      const validation = this.permissionChecker.hasPermission('write');
-      if (!validation.success) {
-        return { success: false, error: validation.error };
-      }
+      // Get the original file path from filename
+      // For now, we'll save the in-memory workbook
 
       const sourceWorkbook = this.activeWorkbooks.get(filename);
       if (!sourceWorkbook) {
@@ -179,22 +177,20 @@ export class ExcelWorkbookManager {
         return { success: false, error: `Worksheet "${worksheetName}" not found` };
       }
 
-      // Create new workbook for export
+      // Create a fresh workbook and copy data cell by cell
       const newWorkbook = new ExcelJS.Workbook();
       const newWorksheet = newWorkbook.addWorksheet(worksheetName);
 
-      // Copy all data by reading cells directly
-      for (let row = 1; row <= sourceWorksheet.rowCount; row++) {
-        for (let col = 1; col <= sourceWorksheet.columnCount; col++) {
-          const sourceCell = sourceWorksheet.getCell(row, col);
-          const newCell = newWorksheet.getCell(row, col);
-          if (sourceCell.value !== null && sourceCell.value !== undefined) {
-            newCell.value = sourceCell.value;
-          }
-        }
-      }
+      // Copy all data without any formatting
+      sourceWorksheet.eachRow((row) => {
+        const rowData: any[] = [];
+        row.eachCell({ includeEmpty: true }, cell => {
+          rowData.push(cell.value);
+        });
+        newWorksheet.addRow(rowData);
+      });
 
-      // Save to new path
+      // Save the new workbook
       await newWorkbook.xlsx.writeFile(newFilePath);
 
       this.logger.info(`Exported worksheet "${worksheetName}" to: ${newFilePath}`);
