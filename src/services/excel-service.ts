@@ -17,13 +17,15 @@ import { ExcelWorkbookManager } from './excel-workbook-manager.js';
 import { ExcelCellOperations } from './excel-cell-operations.js';
 import { ExcelStructureOperations } from './excel-structure-operations.js';
 import { ExcelFormatting } from './excel-formatting.js';
+import { ExcelAccounting } from './excel-accounting.js';
 
 export class ExcelService {
   private workbookManager: ExcelWorkbookManager;
   private cellOperations: ExcelCellOperations;
   private structureOperations: ExcelStructureOperations;
   private formatting: ExcelFormatting;
-  private activeWorkbooks: Map<string, ExcelJS.Workbook>;
+  public accounting: ExcelAccounting;
+  public activeWorkbooks: Map<string, ExcelJS.Workbook>;
   private logger: Logger;
 
   constructor(permissionChecker: PermissionChecker, logger: Logger) {
@@ -33,6 +35,7 @@ export class ExcelService {
     this.cellOperations = new ExcelCellOperations(permissionChecker, logger, this.activeWorkbooks);
     this.structureOperations = new ExcelStructureOperations(permissionChecker, logger, this.activeWorkbooks);
     this.formatting = new ExcelFormatting(permissionChecker, logger, this.activeWorkbooks);
+    this.accounting = new ExcelAccounting(permissionChecker, logger, this.activeWorkbooks);
   }
 
   // Workbook operations

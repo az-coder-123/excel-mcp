@@ -16,6 +16,7 @@ import {
   CommentDataHandlers,
   AdvancedDataHandlers,
   AnalysisHandlers,
+  AccountingHandlers,
   SystemHandlers
 } from './handlers/index.js';
 
@@ -29,6 +30,7 @@ export class ToolHandler {
   private commentDataHandlers: CommentDataHandlers;
   private advancedDataHandlers: AdvancedDataHandlers;
   private analysisHandlers: AnalysisHandlers;
+  private accountingHandlers: AccountingHandlers;
   private systemHandlers: SystemHandlers;
 
   constructor(
@@ -45,6 +47,7 @@ export class ToolHandler {
     this.commentDataHandlers = new CommentDataHandlers(excelService);
     this.advancedDataHandlers = new AdvancedDataHandlers(excelService);
     this.analysisHandlers = new AnalysisHandlers(excelService['activeWorkbooks']);
+    this.accountingHandlers = new AccountingHandlers(excelService['accounting']);
     this.systemHandlers = new SystemHandlers(excelService, permissionChecker, logger);
   }
 
@@ -274,6 +277,34 @@ export class ToolHandler {
             args.range2End as string,
             args.compareType as string ?? 'values'
           );
+
+        // Accounting operations
+        case 'excel_financial_sum':
+          return await this.accountingHandlers.financialSum(args);
+        case 'excel_financial_average':
+          return await this.accountingHandlers.financialAverage(args);
+        case 'excel_running_total':
+          return await this.accountingHandlers.runningTotal(args);
+        case 'excel_percentage_of_total':
+          return await this.accountingHandlers.percentageOfTotal(args);
+        case 'excel_year_to_date':
+          return await this.accountingHandlers.yearToDate(args);
+        case 'excel_accounting_format':
+          return await this.accountingHandlers.accountingFormat(args);
+        case 'excel_vnd_currency_format':
+          return await this.accountingHandlers.vndCurrencyFormat(args);
+        case 'excel_negative_red_format':
+          return await this.accountingHandlers.negativeRedFormat(args);
+        case 'excel_show_zeros_instead_of_empty':
+          return await this.accountingHandlers.showZerosInsteadOfEmpty(args);
+        case 'excel_period_comparison':
+          return await this.accountingHandlers.periodComparison(args);
+        case 'excel_variance_analysis':
+          return await this.accountingHandlers.varianceAnalysis(args);
+        case 'excel_check_balance':
+          return await this.accountingHandlers.checkBalance(args);
+        case 'excel_find_anomalies':
+          return await this.accountingHandlers.findAnomalies(args);
 
         // System operations
         case 'excel_health_check':
