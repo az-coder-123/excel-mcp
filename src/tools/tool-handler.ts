@@ -18,6 +18,7 @@ import {
   AnalysisHandlers,
   AccountingHandlers,
   AdvancedAccountingHandlers,
+  FormulaAnalysisHandlers,
   SystemHandlers
 } from './handlers/index.js';
 
@@ -33,6 +34,7 @@ export class ToolHandler {
   private analysisHandlers: AnalysisHandlers;
   private accountingHandlers: AccountingHandlers;
   private advancedAccountingHandlers: AdvancedAccountingHandlers;
+  private formulaAnalysisHandlers: FormulaAnalysisHandlers;
   private systemHandlers: SystemHandlers;
 
   constructor(
@@ -51,6 +53,7 @@ export class ToolHandler {
     this.analysisHandlers = new AnalysisHandlers(excelService['activeWorkbooks']);
     this.accountingHandlers = new AccountingHandlers(excelService['accounting']);
     this.advancedAccountingHandlers = new AdvancedAccountingHandlers(excelService['advancedAccounting']);
+    this.formulaAnalysisHandlers = new FormulaAnalysisHandlers(excelService['formulaAnalyzer']);
     this.systemHandlers = new SystemHandlers(excelService, permissionChecker, logger);
   }
 
@@ -324,6 +327,40 @@ export class ToolHandler {
           return await this.advancedAccountingHandlers.calculateTax(args);
         case 'excel_convert_currency':
           return await this.advancedAccountingHandlers.convertCurrency(args);
+
+        // Formula Analysis operations
+        case 'excel_list_formulas':
+          return await this.formulaAnalysisHandlers.handleListFormulas(
+            args as { filename: string; worksheet: string }
+          );
+        case 'excel_analyze_formula':
+          return await this.formulaAnalysisHandlers.handleAnalyzeFormula(
+            args as { filename: string; worksheet: string; cellAddress: string }
+          );
+        case 'excel_get_dependencies':
+          return await this.formulaAnalysisHandlers.handleGetDependencies(
+            args as { filename: string; worksheet: string; cellAddress: string }
+          );
+        case 'excel_trace_precedents':
+          return await this.formulaAnalysisHandlers.handleTracePrecedents(
+            args as { filename: string; worksheet: string; cellAddress: string }
+          );
+        case 'excel_trace_dependents':
+          return await this.formulaAnalysisHandlers.handleTraceDependents(
+            args as { filename: string; worksheet: string; cellAddress: string }
+          );
+        case 'excel_explain_formula':
+          return await this.formulaAnalysisHandlers.handleExplainFormula(
+            args as { filename: string; worksheet: string; cellAddress: string }
+          );
+        case 'excel_audit_formulas':
+          return await this.formulaAnalysisHandlers.handleAuditFormulas(
+            args as { filename: string; worksheet: string }
+          );
+        case 'excel_check_circular_references':
+          return await this.formulaAnalysisHandlers.handleCheckCircular(
+            args as { filename: string; worksheet: string }
+          );
 
         // System operations
         case 'excel_health_check':

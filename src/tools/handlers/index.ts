@@ -13,4 +13,5 @@ export { AdvancedDataHandlers } from './advanced-data-handlers.js';
 export { AnalysisHandlers } from './analysis-handlers.js';
 export { AccountingHandlers } from './accounting-handlers.js';
 export { AdvancedAccountingHandlers } from './advanced-accounting-handlers.js';
+export { FormulaAnalysisHandlers } from './formula-analysis-handlers.js';
 export { SystemHandlers } from './system-handlers.js';

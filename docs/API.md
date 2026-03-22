@@ -536,6 +536,495 @@ Gets detailed information about a cell, including formulas.
 - Worksheet not found
 - Invalid cell address
 
+---
+
+### excel_list_formulas
+
+Lists all formulas in a worksheet with their locations, values, and types.
+
+**Parameters**:
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `filename` | string | Yes | Name of the opened workbook |
+| `worksheet` | string | Yes | Name of the worksheet |
+
+**Returns**: Array of all formulas with their metadata.
+
+**Example Request**:
+
+```json
+{
+  "filename": "financial-report.xlsx",
+  "worksheet": "Summary"
+}
+```
+
+**Example Response**:
+
+```json
+{
+  "total": 5,
+  "formulas": [
+    {
+      "cell": "B10",
+      "formula": "=SUM(B1:B9)",
+      "value": 150000,
+      "type": "number"
+    },
+    {
+      "cell": "C10",
+      "formula": "=AVERAGE(C1:C9)",
+      "value": 16666.67,
+      "type": "number"
+    }
+  ]
+}
+```
+
+**Use Cases**:
+- Audit all formulas in a worksheet
+- Identify formula locations before editing
+- Document formula structure
+- Verify formula count and distribution
+
+**Errors**:
+- Workbook not opened
+- Worksheet not found
+
+---
+
+### excel_analyze_formula
+
+Analyzes a specific formula to extract its components and structure.
+
+**Parameters**:
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `filename` | string | Yes | Name of the opened workbook |
+| `worksheet` | string | Yes | Name of the worksheet |
+| `cellAddress` | string | Yes | Cell address containing formula (e.g., B10) |
+
+**Returns**: Detailed analysis of formula components.
+
+**Example Request**:
+
+```json
+{
+  "filename": "financial-report.xlsx",
+  "worksheet": "Summary",
+  "cellAddress": "B10"
+}
+```
+
+**Example Response**:
+
+```json
+{
+  "cell": "B10",
+  "formula": "=SUM(B1:B9)",
+  "functions": [
+    {
+      "name": "SUM",
+      "arguments": ["B1:B9"]
+    }
+  ],
+  "cellReferences": ["B1", "B9"],
+  "namedRanges": [],
+  "complexity": 1,
+  "error": null
+}
+```
+
+**Analysis Components**:
+- `functions`: Array of function names and their arguments
+- `cellReferences`: All cells referenced in the formula
+- `namedRanges`: Named ranges used (if any)
+- `complexity`: Formula complexity score (higher = more complex)
+- `error`: Any error in the formula
+
+**Errors**:
+- Workbook not opened
+- Worksheet not found
+- Cell does not contain formula
+
+---
+
+### excel_get_dependencies
+
+Gets complete dependency information for a formula cell including precedents and dependents.
+
+**Parameters**:
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `filename` | string | Yes | Name of the opened workbook |
+| `worksheet` | string | Yes | Name of the worksheet |
+| `cellAddress` | string | Yes | Cell address to analyze |
+
+**Returns**: Dependency graph information.
+
+**Example Request**:
+
+```json
+{
+  "filename": "financial-report.xlsx",
+  "worksheet": "Summary",
+  "cellAddress": "B10"
+}
+```
+
+**Example Response**:
+
+```json
+{
+  "cell": "B10",
+  "formula": "=SUM(B1:B9)",
+  "precedents": [
+    {"cell": "B1", "value": 10000},
+    {"cell": "B2", "value": 20000}
+  ],
+  "dependents": [
+    {"cell": "C10", "formula": "=B10*0.1"}
+  ],
+  "isCircular": false,
+  "circularChain": null
+}
+```
+
+**Dependency Types**:
+- `precedents`: Cells that provide input to this formula (data sources)
+- `dependents`: Cells that use this formula's result (depend on this cell)
+- `isCircular`: Whether there's a circular reference
+- `circularChain`: Chain of cells if circular reference exists
+
+**Errors**:
+- Workbook not opened
+- Worksheet not found
+- Cell not found
+
+---
+
+### excel_trace_precedents
+
+Traces data sources (precedents) for a cell - shows which cells contribute to the formula.
+
+**Parameters**:
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `filename` | string | Yes | Name of the opened workbook |
+| `worksheet` | string | Yes | Name of the worksheet |
+| `cellAddress` | string | Yes | Cell address to trace |
+
+**Returns**: Precedent cells and their values.
+
+**Example Request**:
+
+```json
+{
+  "filename": "financial-report.xlsx",
+  "worksheet": "Summary",
+  "cellAddress": "D15"
+}
+```
+
+**Example Response**:
+
+```json
+{
+  "cell": "D15",
+  "formula": "=SUM(D1:D14)",
+  "precedents": [
+    {"cell": "D1", "value": 5000},
+    {"cell": "D2", "value": 7500},
+    {"cell": "D3", "value": 10000}
+  ],
+  "count": 14
+}
+```
+
+**Use Cases**:
+- Debug formula results
+- Identify data source cells
+- Understand calculation flow
+- Find incorrect input values
+
+**Errors**:
+- Workbook not opened
+- Worksheet not found
+- Cell not found
+
+---
+
+### excel_trace_dependents
+
+Traces which cells use this cell's value - shows impact of changing this cell.
+
+**Parameters**:
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `filename` | string | Yes | Name of the opened workbook |
+| `worksheet` | string | Yes | Name of the worksheet |
+| `cellAddress` | string | Yes | Cell address to trace |
+
+**Returns**: Dependent cells that reference this cell.
+
+**Example Request**:
+
+```json
+{
+  "filename": "financial-report.xlsx",
+  "worksheet": "Summary",
+  "cellAddress": "B5"
+}
+```
+
+**Example Response**:
+
+```json
+{
+  "cell": "B5",
+  "dependents": [
+    {
+      "cell": "B10",
+      "formula": "=SUM(B1:B9)"
+    },
+    {
+      "cell": "B15",
+      "formula": "=AVERAGE(B1:B14)"
+    }
+  ],
+  "count": 2
+}
+```
+
+**Use Cases**:
+- Understand formula impact before editing
+- Identify cascading effects
+- Prevent breaking dependent calculations
+- Document formula relationships
+
+**Errors**:
+- Workbook not opened
+- Worksheet not found
+- Cell not found
+
+---
+
+### excel_explain_formula
+
+Explains a formula in Vietnamese with step-by-step breakdown and optimization suggestions.
+
+**Parameters**:
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `filename` | string | Yes | Name of the opened workbook |
+| `worksheet` | string | Yes | Name of the worksheet |
+| `cellAddress` | string | Yes | Cell address containing formula |
+
+**Returns**: Detailed explanation of formula logic.
+
+**Example Request**:
+
+```json
+{
+  "filename": "financial-report.xlsx",
+  "worksheet": "Summary",
+  "cellAddress": "B10"
+}
+```
+
+**Example Response**:
+
+```json
+{
+  "cell": "B10",
+  "formula": "=SUM(B1:B9)",
+  "description": "Tính tổng các giá trị từ ô B1 đến B9",
+  "steps": [
+    "Bước 1: Xác định vùng dữ liệu B1:B9",
+    "Bước 2: Cộng tất cả các giá trị trong vùng này",
+    "Bước 3: Kết quả lưu ở ô B10"
+  ],
+  "functions": [
+    {
+      "name": "SUM",
+      "description": "Hàm SUM tính tổng các số",
+      "arguments": ["B1:B9"]
+    }
+  ],
+  "inputParameters": ["B1:B9"],
+  "outputType": "number",
+  "suggestions": [
+    "Có thể dùng named range 'Revenues' thay vì B1:B9",
+    "Xem xét sử dụng SUMIF nếu có điều kiện lọc"
+  ]
+}
+```
+
+**Explanation Components**:
+- `description`: Formula purpose in Vietnamese
+- `steps`: Step-by-step execution
+- `functions`: Functions used with descriptions
+- `inputParameters`: Input ranges/cells
+- `outputType`: Expected result type
+- `suggestions`: Optimization tips
+
+**Use Cases**:
+- Understand complex formulas
+- Learn formula functions
+- Get optimization suggestions
+- Document formula logic
+
+**Errors**:
+- Workbook not opened
+- Worksheet not found
+- Cell does not contain formula
+
+---
+
+### excel_audit_formulas
+
+Audits all formulas in a worksheet and provides comprehensive analysis report.
+
+**Parameters**:
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `filename` | string | Yes | Name of the opened workbook |
+| `worksheet` | string | Yes | Name of the worksheet |
+
+**Returns**: Comprehensive audit report.
+
+**Example Request**:
+
+```json
+{
+  "filename": "financial-report.xlsx",
+  "worksheet": "Summary"
+}
+```
+
+**Example Response**:
+
+```json
+{
+  "worksheet": "Summary",
+  "totalFormulas": 15,
+  "totalCells": 100,
+  "formulaDensity": "15%",
+  "errors": [],
+  "circularReferences": [],
+  "complexity": {
+    "low": 10,
+    "medium": 4,
+    "high": 1
+  },
+  "recommendations": [
+    "Formula density is good (15%)",
+    "Consider breaking down 1 high complexity formula",
+    "No circular references detected"
+  ],
+  "formulasByType": {
+    "SUM": 5,
+    "AVERAGE": 3,
+    "VLOOKUP": 2,
+    "IF": 5
+  }
+}
+```
+
+**Audit Metrics**:
+- `totalFormulas`: Total formula count
+- `formulaDensity`: Percentage of cells with formulas
+- `errors`: Formula errors detected
+- `circularReferences`: Circular reference issues
+- `complexity`: Distribution of formula complexity
+- `recommendations`: Improvement suggestions
+- `formulasByType`: Usage frequency of each function
+
+**Use Cases**:
+- Comprehensive formula review
+- Identify formula issues
+- Quality assessment
+- Optimization opportunities
+
+**Errors**:
+- Workbook not opened
+- Worksheet not found
+
+---
+
+### excel_check_circular_references
+
+Checks entire worksheet for circular references and reports all instances found.
+
+**Parameters**:
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `filename` | string | Yes | Name of the opened workbook |
+| `worksheet` | string | Yes | Name of the worksheet |
+
+**Returns**: Circular reference report.
+
+**Example Request**:
+
+```json
+{
+  "filename": "financial-report.xlsx",
+  "worksheet": "Summary"
+}
+```
+
+**Example Response**:
+
+```json
+{
+  "hasCircularReferences": true,
+  "circularCells": [
+    {
+      "cell": "B5",
+      "chain": ["B5", "C5", "D5", "B5"]
+    }
+  ],
+  "totalChecked": 15,
+  "circularCount": 1
+}
+```
+
+**Circular Reference Components**:
+- `hasCircularReferences`: Whether any circular references exist
+- `circularCells`: Array of cells with circular references
+- `chain`: Reference chain showing the circular dependency
+- `totalChecked`: Number of formula cells checked
+- `circularCount`: Total circular references found
+
+**Circular References**:
+A circular reference occurs when a formula references its own cell, either directly or through a chain of dependencies. This causes calculation errors.
+
+**Example Circular Chain**:
+```
+B5 contains: =C5+D5
+C5 contains: =D5*2
+D5 contains: =B5+10
+Result: B5 → C5 → D5 → B5 (circular!)
+```
+
+**Use Cases**:
+- Debug calculation errors
+- Fix circular reference issues
+- Validate worksheet integrity
+- Troubleshoot incorrect results
+
+**Errors**:
+- Workbook not opened
+- Worksheet not found
+
 ## Data Filtering Guide
 
 ### Introduction

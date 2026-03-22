@@ -16,6 +16,7 @@ import { ADVANCED_DATA_TOOLS } from './advanced-data-tools.js';
 import { ANALYSIS_TOOLS } from './analysis-tools.js';
 import { ACCOUNTING_TOOLS } from './accounting-tools.js';
 import { ADVANCED_ACCOUNTING_TOOLS } from './advanced-accounting-tools.js';
+import { FORMULA_ANALYSIS_TOOLS } from './formula-analysis-tools.js';
 import { SYSTEM_TOOLS } from './system-tools.js';
 
 /**
@@ -34,6 +35,7 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
   ...ANALYSIS_TOOLS,
   ...ACCOUNTING_TOOLS,
   ...ADVANCED_ACCOUNTING_TOOLS,
+  ...FORMULA_ANALYSIS_TOOLS,
   ...SYSTEM_TOOLS,
 ];
 
@@ -49,4 +51,5 @@ export { PROTECTION_TOOLS } from './protection-tools.js';
 export { ADVANCED_DATA_TOOLS } from './advanced-data-tools.js';
 export { ANALYSIS_TOOLS } from './analysis-tools.js';
 export { ACCOUNTING_TOOLS } from './accounting-tools.js';
+export { FORMULA_ANALYSIS_TOOLS } from './formula-analysis-tools.js';
 export { SYSTEM_TOOLS } from './system-tools.js';
