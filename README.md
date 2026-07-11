@@ -58,209 +58,105 @@ MCP_MAX_FILE_SIZE=52428800
 
 ### VS Code Integration
 
-#### For GitHub Copilot
+This server works seamlessly with MCP-compatible tools in VS Code. See the dedicated setup guides for detailed configuration instructions:
 
-Add to your VS Code `settings.json`:
-
-```json
-{
-  "github.copilot.chat.experimental.mcpServers": {
-    "excel-mcp": {
-      "command": "node",
-      "args": ["/path/to/excel-mcp/dist/index.js"],
-      "env": {
-        "MCP_LOG_LEVEL": "info"
-      }
-    }
-  }
-}
-```
-
-#### For Cline
-
-Add to your Cline MCP configuration file (`~/.config/cline/mcp_servers.json`):
-
-```json
-{
-  "mcpServers": {
-    "excel-mcp": {
-      "command": "node",
-      "args": ["/path/to/excel-mcp/dist/index.js"],
-      "env": {
-        "MCP_LOG_LEVEL": "info"
-      }
-    }
-  }
-}
-```
+- **[GitHub Copilot Setup](docs/GITHUB_COPILOT_SETUP.md)** — Configuration for GitHub Copilot Chat in VS Code.
+- **[Cline Setup](docs/CLINE_SETUP.md)** — Configuration for the Cline extension in VS Code.
 
 ## Available Tools
 
-### excel_health_check
+For detailed parameter references, see the [Tools Reference](docs/tools/README.md).
 
-Check server health, dependencies, and configuration status. This tool is useful for verifying that the MCP server is running correctly and all systems are operational.
+### System
 
-```json
-{
-}
-```
+| Tool | Description |
+|------|-------------|
+| `excel_health_check` | Check server health, dependencies, and configuration |
 
-**No parameters required**
+### Workbook Operations
 
-**Response Example:**
-```json
-{
-  "status": "healthy",
-  "server": {
-    "name": "excel-mcp",
-    "version": "1.0.0",
-    "nodeVersion": "v18.0.0",
-    "platform": "darwin",
-    "arch": "arm64",
-    "uptime": "5m 32s"
-  },
-  "dependencies": {
-    "exceljs": "ok",
-    "filesystem": "ok",
-    "memory": "ok",
-    "memoryUsage": {
-      "heapUsed": "45MB",
-      "heapTotal": "64MB",
-      "rss": "78MB",
-      "external": "2MB"
-    }
-  },
-  "configuration": {
-    "logLevel": "info",
-    "maxFileSize": 52428800,
-    "maxFileSizeMB": "50MB",
-    "allowedPathsCount": 0,
-    "deniedPathsCount": 4,
-    "allowedExtensions": [".xlsx", ".xls", ".xlsm", ".xlsb"],
-    "permissions": ["read", "write", "delete"]
-  },
-  "tests": {
-    "permissionChecker": "pass",
-    "logger": "pass",
-    "excelOperations": "pass"
-  },
-  "responseTime": "45ms",
-  "timestamp": "2024-03-21T12:34:56.789Z"
-}
-```
+| Tool | Description |
+|------|-------------|
+| `excel_open_workbook` | Open an Excel file for operations |
+| `excel_create_workbook` | Create a new Excel workbook |
+| `excel_save_workbook` | Save the workbook to disk |
+| `excel_close_workbook` | Close an opened workbook |
+| `excel_get_workbook_context` | Get workbook context and state |
+| `excel_export_worksheet_to_new_file` | Export worksheet to a new Excel file |
 
-### excel_open_workbook
+### Worksheet Operations
 
-Open an Excel file for operations.
+| Tool | Description |
+|------|-------------|
+| `excel_list_worksheets` | List all worksheets in a workbook |
+| `excel_add_worksheet` | Add a new worksheet |
+| `excel_delete_worksheet` | Delete a worksheet |
+| `excel_rename_worksheet` | Rename a worksheet |
+| `excel_copy_worksheet` | Copy a worksheet |
 
-```json
-{
-  "filePath": "/path/to/file.xlsx"
-}
-```
+### Cell Operations
 
-### excel_create_workbook
+| Tool | Description |
+|------|-------------|
+| `excel_read_cell` | Read a single cell value |
+| `excel_read_range` | Read multiple cells |
+| `excel_write_cell` | Write a value to a cell |
+| `excel_write_batch` | Write multiple cells at once |
+| `excel_get_cell_info` | Get detailed cell information (type, formula) |
+| `excel_copy_range` | Copy a cell range to another location |
+| `excel_find_replace` | Find and replace text |
 
-Create a new Excel workbook.
+### Formatting → [Detailed docs](docs/tools/README.md#formatting)
 
-```json
-{
-  "filename": "report",
-  "outputPath": "/workspace"
-}
-```
+| Tool | Category | Docs |
+|------|----------|------|
+| `excel_set_font_style` | Font & Text | [→](docs/tools/font-and-text.md) |
+| `excel_set_font_name_size` | Font & Text | [→](docs/tools/font-and-text.md) |
+| `excel_set_rich_text` | Font & Text | [→](docs/tools/font-and-text.md) |
+| `excel_set_alignment` | Alignment | [→](docs/tools/alignment.md) |
+| `excel_center_text` | Alignment | [→](docs/tools/alignment.md) |
+| `excel_set_border` | Borders | [→](docs/tools/borders.md) |
+| `excel_apply_all_borders` | Borders | [→](docs/tools/borders.md) |
+| `excel_apply_outline_border` | Borders | [→](docs/tools/borders.md) |
+| `excel_set_background_color` | Colors | [→](docs/tools/colors.md) |
+| `excel_set_font_color` | Colors | [→](docs/tools/colors.md) |
+| `excel_set_number_format` | Number Formats | [→](docs/tools/number-formats.md) |
+| `excel_apply_currency_format` | Number Formats | [→](docs/tools/number-formats.md) |
+| `excel_apply_percentage_format` | Number Formats | [→](docs/tools/number-formats.md) |
+| `excel_apply_date_format` | Number Formats | [→](docs/tools/number-formats.md) |
+| `excel_apply_header_style` | Style Presets | [→](docs/tools/style-presets.md) |
+| `excel_apply_title_style` | Style Presets | [→](docs/tools/style-presets.md) |
+| `excel_apply_table_style` | Style Presets | [→](docs/tools/style-presets.md) |
 
-### excel_read_cell
+### Accounting & Finance → [Detailed docs](docs/tools/README.md#accounting--finance)
 
-Read a single cell value.
+| Tool | Category | Docs |
+|------|----------|------|
+| `excel_financial_sum` | Financial Calculations | [→](docs/tools/financial-calculations.md) |
+| `excel_financial_average` | Financial Calculations | [→](docs/tools/financial-calculations.md) |
+| `excel_running_total` | Financial Calculations | [→](docs/tools/financial-calculations.md) |
+| `excel_percentage_of_total` | Financial Calculations | [→](docs/tools/financial-calculations.md) |
+| `excel_year_to_date` | Financial Calculations | [→](docs/tools/financial-calculations.md) |
+| `excel_accounting_format` | Accounting Formats | [→](docs/tools/accounting-formats.md) |
+| `excel_vnd_currency_format` | Accounting Formats | [→](docs/tools/accounting-formats.md) |
+| `excel_negative_red_format` | Accounting Formats | [→](docs/tools/accounting-formats.md) |
+| `excel_show_zeros_instead_of_empty` | Accounting Formats | [→](docs/tools/accounting-formats.md) |
+| `excel_period_comparison` | Financial Analysis | [→](docs/tools/financial-analysis.md) |
+| `excel_variance_analysis` | Financial Analysis | [→](docs/tools/financial-analysis.md) |
+| `excel_check_balance` | Financial Analysis | [→](docs/tools/financial-analysis.md) |
+| `excel_find_anomalies` | Financial Analysis | [→](docs/tools/financial-analysis.md) |
+| `excel_calculate_npv` | Investment Analysis | [→](docs/tools/investment-analysis.md) |
+| `excel_calculate_irr` | Investment Analysis | [→](docs/tools/investment-analysis.md) |
+| `excel_calculate_financial_ratio` | Investment Analysis | [→](docs/tools/investment-analysis.md) |
+| `excel_create_amortization_schedule` | Loan & Debt | [→](docs/tools/loan-and-debt.md) |
+| `excel_create_aging_report` | Loan & Debt | [→](docs/tools/loan-and-debt.md) |
+| `excel_calculate_tax` | Tax & Currency | [→](docs/tools/tax-and-currency.md) |
+| `excel_convert_currency` | Tax & Currency | [→](docs/tools/tax-and-currency.md) |
 
-```json
-{
-  "filename": "report.xlsx",
-  "worksheet": "Sheet1",
-  "cellAddress": "A1"
-}
-```
+### Usage Examples & Reference
 
-### excel_read_range
-
-Read multiple cells.
-
-```json
-{
-  "filename": "report.xlsx",
-  "worksheet": "Sheet1",
-  "startCell": "A1",
-  "endCell": "C10"
-}
-```
-
-### excel_write_cell
-
-Write a value to a cell.
-
-```json
-{
-  "filename": "report.xlsx",
-  "worksheet": "Sheet1",
-  "cellAddress": "A1",
-  "value": "Hello World"
-}
-```
-
-### excel_list_worksheets
-
-List all worksheets in a workbook.
-
-```json
-{
-  "filename": "report.xlsx"
-}
-```
-
-### excel_add_worksheet
-
-Add a new worksheet.
-
-```json
-{
-  "filename": "report.xlsx",
-  "worksheetName": "Summary"
-}
-```
-
-### excel_save_workbook
-
-Save the workbook to disk.
-
-```json
-{
-  "filename": "report.xlsx",
-  "outputPath": "/workspace/report-final.xlsx"
-}
-```
-
-### excel_close_workbook
-
-Close an opened workbook.
-
-```json
-{
-  "filename": "report.xlsx"
-}
-```
-
-### excel_get_cell_info
-
-Get detailed cell information including formulas.
-
-```json
-{
-  "filename": "report.xlsx",
-  "worksheet": "Sheet1",
-  "cellAddress": "B5"
-}
-```
+- [Examples](docs/tools/examples.md) — Practical usage examples for all tool groups
+- [Reference](docs/tools/reference.md) — Color codes, border styles, font names, AARRGGBB format
 
 ## Security Features
 
@@ -410,3 +306,4 @@ Contributions are welcome! Please read our contributing guidelines and code of c
 
 - GitHub Issues: [Report bugs](https://github.com/az-coder-123/excel-mcp/issues)
 - Documentation: [Full docs](docs/)
+- Tools Reference: [Tools index](docs/tools/README.md)
