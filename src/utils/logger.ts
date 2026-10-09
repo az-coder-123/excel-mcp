@@ -5,12 +5,14 @@
 
 import { LogEntry } from '../types/index.js';
 
+export type LogLevel = 'debug' | 'info' | 'warn' | 'error' | 'silent';
+
 export class Logger {
-  private logLevel: 'debug' | 'info' | 'warn' | 'error';
+  private logLevel: LogLevel;
   private logs: LogEntry[] = [];
   private maxLogs: number = 1000;
 
-  constructor(logLevel: 'debug' | 'info' | 'warn' | 'error' = 'info') {
+  constructor(logLevel: LogLevel = 'info') {
     this.logLevel = logLevel;
   }
 
@@ -78,6 +80,9 @@ export class Logger {
    * Check if message should be logged based on level
    */
   private shouldLog(level: 'debug' | 'info' | 'warn' | 'error'): boolean {
+    if (this.logLevel === 'silent') {
+      return false;
+    }
     const levels = ['debug', 'info', 'warn', 'error'];
     const currentLevelIndex = levels.indexOf(this.logLevel);
     const messageLevelIndex = levels.indexOf(level);
@@ -123,7 +128,7 @@ export class Logger {
   /**
    * Update log level
    */
-  public setLogLevel(level: 'debug' | 'info' | 'warn' | 'error'): void {
+  public setLogLevel(level: LogLevel): void {
     this.logLevel = level;
   }
 

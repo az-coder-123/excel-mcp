@@ -128,7 +128,7 @@ describe('Formula Auto-Detection in Cell Operations', () => {
       permissions: ['read', 'write', 'delete'],
     });
     activeWorkbooks = new Map();
-    cellOps = new ExcelCellOperations(checker, new Logger('error'), activeWorkbooks);
+    cellOps = new ExcelCellOperations(checker, new Logger('silent'), activeWorkbooks);
 
     testWorkbook = new ExcelJS.Workbook();
     testWorksheet = testWorkbook.addWorksheet('Sheet1');
@@ -196,7 +196,7 @@ describe('Multi-Column Accounting Operations', () => {
       permissions: ['read', 'write', 'delete'],
     });
     activeWorkbooks = new Map();
-    accounting = new ExcelAccounting(checker, new Logger('error'), activeWorkbooks);
+    accounting = new ExcelAccounting(checker, new Logger('silent'), activeWorkbooks);
 
     const wb = new ExcelJS.Workbook();
     const ws = wb.addWorksheet('Data');
@@ -272,7 +272,7 @@ describe('SystemHandlers Typed Dependencies', () => {
       permissions: ['read', 'write', 'delete', 'admin'],
     };
     const checker = new PermissionChecker(permConfig);
-    const logger = new Logger('error');
+    const logger = new Logger('silent');
     const service = new ExcelService(checker, logger);
 
     const handler = new SystemHandlers(service, checker, logger);

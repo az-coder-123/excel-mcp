@@ -32,7 +32,7 @@ beforeAll(() => {
   tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'excel-mcp-wb-'));
   const strictChecker = new PermissionChecker(config({ allowedPaths: [tmpRoot] }));
   activeWorkbooks = new Map();
-  manager = new ExcelWorkbookManager(strictChecker, new Logger('error'), activeWorkbooks);
+  manager = new ExcelWorkbookManager(strictChecker, new Logger('silent'), activeWorkbooks);
 });
 
 afterAll(() => {
@@ -68,7 +68,7 @@ describe('createWorkbook — A4: full validateFileAccess on write targets', () =
     const readOnlyChecker = new PermissionChecker(
       config({ allowedPaths: [tmpRoot], permissions: ['read'] })
     );
-    const readOnlyManager = new ExcelWorkbookManager(readOnlyChecker, new Logger('error'), new Map());
+    const readOnlyManager = new ExcelWorkbookManager(readOnlyChecker, new Logger('silent'), new Map());
     const res = await readOnlyManager.createWorkbook(path.join(tmpRoot, 'denied.xlsx'));
     expect(res.success).toBe(false);
     expect(res.error).toMatch(/permission/i);
@@ -135,7 +135,7 @@ describe('exportWorksheetToNewFile — A4: previously completely unvalidated', (
     const readOnlyChecker = new PermissionChecker(
       config({ allowedPaths: [tmpRoot], permissions: ['read'] })
     );
-    const roManager = new ExcelWorkbookManager(readOnlyChecker, new Logger('error'), new Map());
+    const roManager = new ExcelWorkbookManager(readOnlyChecker, new Logger('silent'), new Map());
     const res = await roManager.exportWorksheetToNewFile(
       'irrelevant.xlsx',
       'Sheet1',

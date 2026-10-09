@@ -24,7 +24,7 @@ const makeService = () => {
   const workbooks = new Map<string, ExcelJS.Workbook>();
   const service = new ExcelAdvancedAccounting(
     new PermissionChecker(config()),
-    new Logger('error'),
+    new Logger('silent'),
     workbooks
   );
   return { service, workbooks };

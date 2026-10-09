@@ -33,12 +33,12 @@ beforeAll(() => {
   tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'excel-mcp-dead-'));
   excelService = new ExcelService(
     new PermissionChecker(config({ allowedPaths: [tmpRoot] })),
-    new Logger('error')
+    new Logger('silent')
   );
   handler = new ToolHandler(
     excelService,
     new PermissionChecker(config({ allowedPaths: [tmpRoot] })),
-    new Logger('error')
+    new Logger('silent')
   );
 });
 

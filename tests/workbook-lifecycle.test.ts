@@ -34,7 +34,7 @@ beforeAll(() => {
   activeWorkbooks = new Map();
   manager = new ExcelWorkbookManager(
     new PermissionChecker(config({ allowedPaths: [tmpRoot] })),
-    new Logger('error'),
+    new Logger('silent'),
     activeWorkbooks
   );
 });

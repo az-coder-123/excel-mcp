@@ -79,7 +79,7 @@ export interface ServerConfig {
   name: string;
   version: string;
   permissions: PermissionConfig;
-  logLevel: 'debug' | 'info' | 'warn' | 'error';
+  logLevel: 'debug' | 'info' | 'warn' | 'error' | 'silent';
   maxConcurrentOperations: number;
   operationTimeout: number;
 }
