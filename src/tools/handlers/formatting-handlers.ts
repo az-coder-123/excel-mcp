@@ -12,6 +12,22 @@ export class FormattingHandlers extends BaseHandler {
     super(excelService);
   }
 
+  async handleSetGradientFill(args: Record<string, unknown>): Promise<OperationResult> {
+    const filename = this.getStringArg(args, 'filename');
+    const worksheet = this.getStringArg(args, 'worksheet');
+    const startCell = this.getStringArg(args, 'startCell');
+    const endCell = this.getStringArg(args, 'endCell');
+    const color1 = this.getStringArg(args, 'color1');
+    const color2 = this.getStringArg(args, 'color2');
+    const type = this.getStringArg(args, 'type') ?? 'horizontal';
+
+    if (!filename || !worksheet || !startCell || !color1 || !color2) {
+      return { success: false, error: 'Missing required parameters' };
+    }
+
+    return this.excelService.setGradientFill(filename, worksheet, startCell, endCell, color1, color2, type);
+  }
+
   async handleSetCellFormat(args: Record<string, unknown>): Promise<OperationResult> {
     const filename = this.getStringArg(args, 'filename');
     const worksheet = this.getStringArg(args, 'worksheet');

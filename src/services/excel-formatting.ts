@@ -26,6 +26,278 @@ export class ExcelFormatting {
   /**
    * Set font style (bold, italic, underline, strikethrough)
    */
+  /** Apply a two-color gradient fill (wires the previously-undispatched excel_set_gradient_fill). */
+  public async setGradientFill(
+    filename: string,
+    worksheetName: string,
+    startCell: string,
+    endCell: string | undefined,
+    color1: string,
+    color2: string,
+    type: string = 'horizontal'
+  ): Promise<OperationResult<void>> {
+    try {
+      const validation = this.permissionChecker.hasPermission('write');
+      if (!validation.success) {
+        return { success: false, error: validation.error };
+      }
+      const workbook = this.activeWorkbooks.get(filename);
+      if (!workbook) {
+        return { success: false, error: `Workbook "${filename}" not opened` };
+      }
+      const worksheet = workbook.getWorksheet(worksheetName);
+      if (!worksheet) {
+        return { success: false, error: `Worksheet "${worksheetName}" not found` };
+      }
+
+      const degree = type === 'vertical' ? 90 : type === 'diagonal' ? 45 : 0;
+      const range = this.parseRangeCells(startCell, endCell ?? startCell);
+      for (let r = range.startRow; r <= range.endRow; r++) {
+        for (let c = range.startCol; c <= range.endCol; c++) {
+          worksheet.getCell(r, c).fill = {
+            type: 'gradient',
+            gradient: 'angle',
+            degree,
+            stops: [
+              { position: 0, color: { argb: this.toArgb(color1) } },
+              { position: 1, color: { argb: this.toArgb(color2) } },
+            ],
+          };
+        }
+      }
+
+      return { success: true };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return { success: false, error: message };
+    }
+  }
+
+  /** Add a conditional formatting rule (cellValue / containsText / blanks / errors). */
+  public async addConditionalFormat(
+    filename: string,
+    worksheetName: string,
+    startCell: string,
+    endCell: string,
+    rule: {
+      ruleType: string;
+      operator?: string;
+      formula1?: string;
+      formula2?: string;
+      format?: Record<string, unknown>;
+    }
+  ): Promise<OperationResult<void>> {
+    try {
+      const validation = this.permissionChecker.hasPermission('write');
+      if (!validation.success) {
+        return { success: false, error: validation.error };
+      }
+      const workbook = this.activeWorkbooks.get(filename);
+      if (!workbook) {
+        return { success: false, error: `Workbook "${filename}" not opened` };
+      }
+      const worksheet = workbook.getWorksheet(worksheetName);
+      if (!worksheet) {
+        return { success: false, error: `Worksheet "${worksheetName}" not found` };
+      }
+
+      const ref = `${startCell}:${endCell}`;
+      const style = this.buildCfStyle(rule.format);
+      const ruleType = rule.ruleType;
+
+      if (ruleType === 'colorScale' || ruleType === 'dataBar' || ruleType === 'iconSet') {
+        return { success: false, error: `Use the dedicated ${ruleType} action for rule type "${ruleType}"` };
+      }
+
+      let cfRule: Record<string, unknown>;
+      if (ruleType === 'cellValue') {
+        const formulae = [rule.formula1 ?? '0'];
+        if (rule.formula2 !== undefined && rule.operator === 'between') {
+          formulae.push(rule.formula2);
+        }
+        cfRule = { type: 'cellIs', operator: rule.operator ?? 'equal', formulae, style };
+      } else if (ruleType === 'containsText') {
+        cfRule = { type: 'containsText', operator: 'containsText', text: rule.formula1 ?? '', style };
+      } else if (ruleType === 'blanks') {
+        cfRule = { type: 'expression', formulae: [`ISBLANK(${startCell})`], style };
+      } else if (ruleType === 'errors') {
+        cfRule = { type: 'expression', formulae: [`ISERROR(${startCell})`], style };
+      } else {
+        return { success: false, error: `Unsupported conditional format rule type: ${ruleType}` };
+      }
+
+      worksheet.addConditionalFormatting({ ref, rules: [cfRule] as unknown as ExcelJS.ConditionalFormattingOptions['rules'] });
+      return { success: true };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return { success: false, error: message };
+    }
+  }
+
+  /** Add a data-bar conditional format over a range. */
+  public async addDataBar(
+    filename: string,
+    worksheetName: string,
+    startCell: string,
+    endCell: string,
+    color?: string
+  ): Promise<OperationResult<void>> {
+    const rule: Record<string, unknown> = {
+      type: 'dataBar',
+      cfvo: [{ type: 'min' }, { type: 'max' }],
+    };
+    if (color) rule.color = this.toArgb(color);
+    return this.addVisualCf(filename, worksheetName, startCell, endCell, rule);
+  }
+
+  /** Add a color-scale conditional format over a range. */
+  public async addColorScale(
+    filename: string,
+    worksheetName: string,
+    startCell: string,
+    endCell: string,
+    minColor?: string,
+    midColor?: string,
+    maxColor?: string
+  ): Promise<OperationResult<void>> {
+    const cfvo: Array<{ type: string; value?: number }> = [{ type: 'min' }];
+    const colors: string[] = [];
+    if (minColor) colors.push(this.toArgb(minColor));
+    if (midColor) cfvo.push({ type: 'percentile', value: 50 });
+    if (maxColor) colors.push(this.toArgb(maxColor));
+    cfvo.push({ type: 'max' });
+    return this.addVisualCf(filename, worksheetName, startCell, endCell, {
+      type: 'colorScale',
+      cfvo,
+      color: colors,
+    });
+  }
+
+  /** Add an icon-set conditional format over a range. */
+  public async addIconSet(
+    filename: string,
+    worksheetName: string,
+    startCell: string,
+    endCell: string,
+    iconSet: string
+  ): Promise<OperationResult<void>> {
+    return this.addVisualCf(filename, worksheetName, startCell, endCell, {
+      type: 'iconSet',
+      iconSet,
+      cfvo: [
+        { type: 'percent', value: 0 },
+        { type: 'percent', value: 33 },
+        { type: 'percent', value: 67 },
+      ],
+      showValue: true,
+    });
+  }
+
+  /** Remove conditional formatting rules attached to a specific range ref. */
+  public async removeConditionalFormat(
+    filename: string,
+    worksheetName: string,
+    startCell: string,
+    endCell: string
+  ): Promise<OperationResult<{ removed: number }>> {
+    try {
+      const validation = this.permissionChecker.hasPermission('write');
+      if (!validation.success) {
+        return { success: false, error: validation.error };
+      }
+      const workbook = this.activeWorkbooks.get(filename);
+      if (!workbook) {
+        return { success: false, error: `Workbook "${filename}" not opened` };
+      }
+      const worksheet = workbook.getWorksheet(worksheetName);
+      if (!worksheet) {
+        return { success: false, error: `Worksheet "${worksheetName}" not found` };
+      }
+
+      const ref = `${startCell}:${endCell}`;
+      const store = worksheet as unknown as { conditionalFormattings: Array<{ ref: string }> };
+      if (!Array.isArray(store.conditionalFormattings)) {
+        return { success: true, data: { removed: 0 } };
+      }
+      const before = store.conditionalFormattings.length;
+      store.conditionalFormattings = store.conditionalFormattings.filter((cf) => cf.ref !== ref);
+      return { success: true, data: { removed: before - store.conditionalFormattings.length } };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return { success: false, error: message };
+    }
+  }
+
+  private async addVisualCf(
+    filename: string,
+    worksheetName: string,
+    startCell: string,
+    endCell: string,
+    rule: Record<string, unknown>
+  ): Promise<OperationResult<void>> {
+    try {
+      const validation = this.permissionChecker.hasPermission('write');
+      if (!validation.success) {
+        return { success: false, error: validation.error };
+      }
+      const workbook = this.activeWorkbooks.get(filename);
+      if (!workbook) {
+        return { success: false, error: `Workbook "${filename}" not opened` };
+      }
+      const worksheet = workbook.getWorksheet(worksheetName);
+      if (!worksheet) {
+        return { success: false, error: `Worksheet "${worksheetName}" not found` };
+      }
+      worksheet.addConditionalFormatting({
+        ref: `${startCell}:${endCell}`,
+        rules: [rule] as unknown as ExcelJS.ConditionalFormattingOptions['rules'],
+      });
+      return { success: true };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return { success: false, error: message };
+    }
+  }
+
+  private buildCfStyle(format?: Record<string, unknown>): Partial<ExcelJS.Style> {
+    const style: Partial<ExcelJS.Style> = {};
+    if (!format) return style;
+    const fill = typeof format.fill === 'string' ? format.fill : undefined;
+    const fontColor = typeof format.fontColor === 'string' ? format.fontColor : undefined;
+    const bold = format.bold === true;
+    if (fill) {
+      style.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: this.toArgb(fill) } };
+    }
+    if (fontColor || bold) {
+      style.font = {
+        ...(fontColor ? { color: { argb: this.toArgb(fontColor) } } : {}),
+        ...(bold ? { bold } : {}),
+      };
+    }
+    return style;
+  }
+
+  private toArgb(color: string): string {
+    const hex = color.replace('#', '').toUpperCase();
+    return hex.length === 6 ? `FF${hex}` : hex;
+  }
+
+  private parseRangeCells(startCell: string, endCell: string): { startRow: number; endRow: number; startCol: number; endCol: number } {
+    const parse = (addr: string) => {
+      const match = addr.match(/^([A-Z]+)(\d+)$/i);
+      if (!match) return { row: 1, col: 1 };
+      let col = 0;
+      for (const ch of match[1].toUpperCase()) col = col * 26 + (ch.charCodeAt(0) - 64);
+      return { row: parseInt(match[2], 10), col };
+    };
+    const a = parse(startCell);
+    const b = parse(endCell);
+    return {
+      startRow: Math.min(a.row, b.row), endRow: Math.max(a.row, b.row),
+      startCol: Math.min(a.col, b.col), endCol: Math.max(a.col, b.col),
+    };
+  }
+
   public async setFontStyle(
     filename: string,
     worksheetName: string,

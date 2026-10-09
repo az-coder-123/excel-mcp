@@ -15,16 +15,18 @@ export class ChartHandlers extends BaseHandler {
   public async handleAddChart(args: Record<string, unknown>): Promise<OperationResult> {
     const filename = this.getStringArg(args, 'filename');
     const worksheet = this.getStringArg(args, 'worksheet');
-    const dataRange = this.getStringArg(args, 'dataRange');
+    const dataStartCell = this.getStringArg(args, 'dataStartCell');
+    const dataEndCell = this.getStringArg(args, 'dataEndCell');
     const chartType = this.getStringArg(args, 'chartType');
     const targetCell = this.getStringArg(args, 'targetCell');
     const title = this.getStringArg(args, 'title');
     const width = this.getNumberArg(args, 'width');
     const height = this.getNumberArg(args, 'height');
 
-    if (!filename || !worksheet || !dataRange || !chartType || !targetCell) {
+    if (!filename || !worksheet || !dataStartCell || !dataEndCell || !chartType || !targetCell) {
       return { success: false, error: 'Missing required parameters' };
     }
+    const dataRange = `${dataStartCell}:${dataEndCell}`;
 
     return this.excelService.addChart(
       filename,
@@ -42,13 +44,14 @@ export class ChartHandlers extends BaseHandler {
     const filename = this.getStringArg(args, 'filename');
     const worksheet = this.getStringArg(args, 'worksheet');
     const chartIndex = this.getNumberArg(args, 'chartIndex');
-    const dataRange = this.getStringArg(args, 'dataRange');
+    const dataStartCell = this.getStringArg(args, 'dataStartCell');
+    const dataEndCell = this.getStringArg(args, 'dataEndCell');
 
-    if (!filename || !worksheet || chartIndex === undefined || !dataRange) {
+    if (!filename || !worksheet || chartIndex === undefined || !dataStartCell || !dataEndCell) {
       return { success: false, error: 'Missing required parameters' };
     }
 
-    return this.excelService.updateChart(filename, worksheet, chartIndex, dataRange);
+    return this.excelService.updateChart(filename, worksheet, chartIndex, `${dataStartCell}:${dataEndCell}`);
   }
 
   public async handleDeleteChart(args: Record<string, unknown>): Promise<OperationResult> {

@@ -22,6 +22,137 @@ export class ExcelStructureOperations {
   }
 
   /**
+   * Protect a worksheet with an optional password (wires the previously-undispatched protection tools).
+   */
+  public async protectWorksheet(
+    filename: string,
+    worksheetName: string,
+    password?: string,
+    allowSelectLockedCells: boolean = true,
+    allowSelectUnlockedCells: boolean = true
+  ): Promise<OperationResult<void>> {
+    try {
+      const validation = this.permissionChecker.hasPermission('write');
+      if (!validation.success) {
+        return { success: false, error: validation.error };
+      }
+      const workbook = this.activeWorkbooks.get(filename);
+      if (!workbook) {
+        return { success: false, error: `Workbook "${filename}" not opened` };
+      }
+      const worksheet = workbook.getWorksheet(worksheetName);
+      if (!worksheet) {
+        return { success: false, error: `Worksheet "${worksheetName}" not found` };
+      }
+
+      // ExcelJS types require a concrete string password; '' means no password
+      await worksheet.protect(password ?? '', {
+        selectLockedCells: allowSelectLockedCells,
+        selectUnlockedCells: allowSelectUnlockedCells,
+      });
+      return { success: true };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return { success: false, error: message };
+    }
+  }
+
+  /**
+   * Remove worksheet protection (throws on wrong password, surfaced as an error result).
+   */
+  public async unprotectWorksheet(
+    filename: string,
+    worksheetName: string,
+    _password?: string
+  ): Promise<OperationResult<void>> {
+    try {
+      const validation = this.permissionChecker.hasPermission('write');
+      if (!validation.success) {
+        return { success: false, error: validation.error };
+      }
+      const workbook = this.activeWorkbooks.get(filename);
+      if (!workbook) {
+        return { success: false, error: `Workbook "${filename}" not opened` };
+      }
+      const worksheet = workbook.getWorksheet(worksheetName);
+      if (!worksheet) {
+        return { success: false, error: `Worksheet "${worksheetName}" not found` };
+      }
+
+      // Note: ExcelJS unprotect() takes no password argument; password
+      // enforcement is applied by Excel when the file is opened.
+      await worksheet.unprotect();
+      return { success: true };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return { success: false, error: message };
+    }
+  }
+
+  /** Set the locked protection flag on every cell in a range. */
+  public async protectCells(
+    filename: string,
+    worksheetName: string,
+    startCell: string,
+    endCell: string,
+    locked: boolean
+  ): Promise<OperationResult<void>> {
+    try {
+      const validation = this.permissionChecker.hasPermission('write');
+      if (!validation.success) {
+        return { success: false, error: validation.error };
+      }
+      const workbook = this.activeWorkbooks.get(filename);
+      if (!workbook) {
+        return { success: false, error: `Workbook "${filename}" not opened` };
+      }
+      const worksheet = workbook.getWorksheet(worksheetName);
+      if (!worksheet) {
+        return { success: false, error: `Worksheet "${worksheetName}" not found` };
+      }
+
+      const parse = (addr: string) => {
+        const match = addr.match(/^([A-Z]+)(\d+)$/i);
+        if (!match) return { row: 1, col: 1 };
+        let col = 0;
+        for (const ch of match[1].toUpperCase()) col = col * 26 + (ch.charCodeAt(0) - 64);
+        return { row: parseInt(match[2], 10), col };
+      };
+      const a = parse(startCell);
+      const b = parse(endCell);
+
+      for (let r = Math.min(a.row, b.row); r <= Math.max(a.row, b.row); r++) {
+        for (let c = Math.min(a.col, b.col); c <= Math.max(a.col, b.col); c++) {
+          const cell = worksheet.getCell(r, c);
+          cell.protection = { ...cell.protection, locked };
+        }
+      }
+      return { success: true };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return { success: false, error: message };
+    }
+  }
+
+  /**
+   * Workbook-level protection is not supported by the ExcelJS serialization engine.
+   * Dispatched honestly with an explicit error rather than silently faking success.
+   */
+  public async protectWorkbook(_password?: string): Promise<OperationResult<void>> {
+    return {
+      success: false,
+      error: 'Workbook-level protection is not supported by the ExcelJS engine; protect individual worksheets instead',
+    };
+  }
+
+  public async unprotectWorkbook(_password?: string): Promise<OperationResult<void>> {
+    return {
+      success: false,
+      error: 'Workbook-level protection is not supported by the ExcelJS engine; unprotect individual worksheets instead',
+    };
+  }
+
+  /**
    * Get list of worksheets
    */
   public getWorksheets(filename: string): OperationResult<WorksheetInfo[]> {

@@ -696,4 +696,116 @@ export class AdvancedDataHandlers extends BaseHandler {
       endCell: parts[1]
     };
   }
+
+  // ====================================================================
+  // Previously-undispatched data tools (wired per Phase 3 directive)
+  // ====================================================================
+
+  async handleImportCsv(args: Record<string, unknown>): Promise<OperationResult> {
+    const filename = this.getStringArg(args, 'filename');
+    const worksheet = this.getStringArg(args, 'worksheet');
+    const csvContent = this.getStringArg(args, 'csvContent');
+    const startCell = this.getStringArg(args, 'startCell');
+    const delimiter = this.getStringArg(args, 'delimiter') ?? ',';
+    if (!filename || !worksheet || csvContent === undefined || !startCell) {
+      return { success: false, error: 'Missing required parameters' };
+    }
+    return this.excelService.importCsv(filename, worksheet, csvContent, startCell, delimiter);
+  }
+
+  async handleExportCsv(args: Record<string, unknown>): Promise<OperationResult> {
+    const filename = this.getStringArg(args, 'filename');
+    const worksheet = this.getStringArg(args, 'worksheet');
+    const startCell = this.getStringArg(args, 'startCell');
+    const endCell = this.getStringArg(args, 'endCell');
+    const delimiter = this.getStringArg(args, 'delimiter') ?? ',';
+    if (!filename || !worksheet || !startCell || !endCell) {
+      return { success: false, error: 'Missing required parameters' };
+    }
+    return this.excelService.exportCsv(filename, worksheet, startCell, endCell, delimiter);
+  }
+
+  async handleRemoveDuplicates(args: Record<string, unknown>): Promise<OperationResult> {
+    const filename = this.getStringArg(args, 'filename');
+    const worksheet = this.getStringArg(args, 'worksheet');
+    const startCell = this.getStringArg(args, 'startCell');
+    const endCell = this.getStringArg(args, 'endCell');
+    const columns = this.getArrayArg(args, 'columns') as (string | number)[] | undefined;
+    if (!filename || !worksheet || !startCell || !endCell) {
+      return { success: false, error: 'Missing required parameters' };
+    }
+    return this.excelService.removeDuplicates(filename, worksheet, startCell, endCell, columns);
+  }
+
+  async handleTextToColumns(args: Record<string, unknown>): Promise<OperationResult> {
+    const filename = this.getStringArg(args, 'filename');
+    const worksheet = this.getStringArg(args, 'worksheet');
+    const sourceCell = this.getStringArg(args, 'sourceCell');
+    const targetCell = this.getStringArg(args, 'targetCell');
+    const delimiter = this.getStringArg(args, 'delimiter');
+    const numberOfColumns = this.getNumberArg(args, 'numberOfColumns');
+    if (!filename || !worksheet || !sourceCell || !targetCell || !delimiter || numberOfColumns === undefined) {
+      return { success: false, error: 'Missing required parameters' };
+    }
+    return this.excelService.textToColumns(filename, worksheet, sourceCell, targetCell, delimiter, numberOfColumns);
+  }
+
+  async handleFlashFill(args: Record<string, unknown>): Promise<OperationResult> {
+    const filename = this.getStringArg(args, 'filename');
+    const worksheet = this.getStringArg(args, 'worksheet');
+    const sourceRange = this.getStringArg(args, 'sourceRange');
+    const targetRange = this.getStringArg(args, 'targetRange');
+    if (!filename || !worksheet || !sourceRange || !targetRange) {
+      return { success: false, error: 'Missing required parameters' };
+    }
+    return this.excelService.flashFill(filename, worksheet, sourceRange, targetRange);
+  }
+
+  async handleVlookup(args: Record<string, unknown>): Promise<OperationResult> {
+    const filename = this.getStringArg(args, 'filename');
+    const worksheet = this.getStringArg(args, 'worksheet');
+    const targetCell = this.getStringArg(args, 'targetCell');
+    const tableArray = this.getStringArg(args, 'tableArray');
+    const colIndex = this.getNumberArg(args, 'colIndex');
+    const rangeLookup = this.getBooleanArg(args, 'rangeLookup') ?? true;
+    const raw = args['lookupValue'];
+    const lookupValue = typeof raw === 'number' ? raw : String(raw ?? '');
+    if (!filename || !worksheet || !targetCell || !tableArray || colIndex === undefined || lookupValue === '') {
+      return { success: false, error: 'Missing required parameters' };
+    }
+    return this.excelService.vlookup(filename, worksheet, targetCell, lookupValue, tableArray, colIndex, rangeLookup);
+  }
+
+  async handleIndexMatch(args: Record<string, unknown>): Promise<OperationResult> {
+    const filename = this.getStringArg(args, 'filename');
+    const worksheet = this.getStringArg(args, 'worksheet');
+    const targetCell = this.getStringArg(args, 'targetCell');
+    const returnRange = this.getStringArg(args, 'returnRange');
+    const lookupRange = this.getStringArg(args, 'lookupRange');
+    const raw = args['lookupValue'];
+    const lookupValue = typeof raw === 'number' ? raw : String(raw ?? '');
+    if (!filename || !worksheet || !targetCell || !returnRange || !lookupRange || lookupValue === '') {
+      return { success: false, error: 'Missing required parameters' };
+    }
+    return this.excelService.indexMatch(filename, worksheet, targetCell, returnRange, lookupRange, lookupValue);
+  }
+
+  async handleCreatePivotTable(args: Record<string, unknown>): Promise<OperationResult> {
+    const filename = this.getStringArg(args, 'filename');
+    const sourceWorksheet = this.getStringArg(args, 'sourceWorksheet');
+    const sourceStartCell = this.getStringArg(args, 'sourceStartCell');
+    const sourceEndCell = this.getStringArg(args, 'sourceEndCell');
+    const targetWorksheet = this.getStringArg(args, 'targetWorksheet');
+    const targetCell = this.getStringArg(args, 'targetCell');
+    const rowFields = this.getArrayArg(args, 'rowFields') as string[] | undefined;
+    const columnFields = this.getArrayArg(args, 'columnFields') as string[] | undefined;
+    const valueFields = this.getArrayArg(args, 'valueFields') as string[] | undefined;
+    if (!filename || !sourceWorksheet || !sourceStartCell || !sourceEndCell || !targetWorksheet || !targetCell) {
+      return { success: false, error: 'Missing required parameters' };
+    }
+    return this.excelService.createPivotTable(
+      filename, sourceWorksheet, sourceStartCell, sourceEndCell,
+      targetWorksheet, targetCell, rowFields, columnFields, valueFields
+    );
+  }
 }

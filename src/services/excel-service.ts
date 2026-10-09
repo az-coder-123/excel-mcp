@@ -18,6 +18,7 @@ import { ExcelAdvancedAccounting } from './excel-advanced-accounting.js';
 import { ExcelCellOperations } from './excel-cell-operations.js';
 import { ExcelFormatting } from './excel-formatting.js';
 import { ExcelFormulaAnalyzer } from './excel-formula-analyzer.js';
+import { ExcelDataUtilities } from './excel-data-utilities.js';
 import { ExcelStructureOperations } from './excel-structure-operations.js';
 import { ExcelWorkbookManager } from './excel-workbook-manager.js';
 
@@ -29,6 +30,7 @@ export class ExcelService {
   public accounting: ExcelAccounting;
   public advancedAccounting: ExcelAdvancedAccounting;
   public formulaAnalyzer: ExcelFormulaAnalyzer;
+  public dataUtilities: ExcelDataUtilities;
   public activeWorkbooks: Map<string, ExcelJS.Workbook>;
   private logger: Logger;
 
@@ -42,6 +44,7 @@ export class ExcelService {
     this.accounting = new ExcelAccounting(permissionChecker, logger, this.activeWorkbooks);
     this.advancedAccounting = new ExcelAdvancedAccounting(permissionChecker, logger, this.activeWorkbooks);
     this.formulaAnalyzer = new ExcelFormulaAnalyzer(this.activeWorkbooks);
+    this.dataUtilities = new ExcelDataUtilities(permissionChecker, logger, this.activeWorkbooks);
   }
 
   // Workbook operations
@@ -469,5 +472,93 @@ export class ExcelService {
       this.logger.error(`Failed to list charts: ${errorMessage}`);
       return { success: false, error: `Failed to list charts: ${errorMessage}` };
     }
+  }
+
+  // ==================================================================
+  // Gradient & conditional formatting (previously-undispatched tools)
+  // ==================================================================
+
+  public async setGradientFill(filename: string, worksheetName: string, startCell: string, endCell: string | undefined, color1: string, color2: string, type?: string): Promise<OperationResult<void>> {
+    return this.formatting.setGradientFill(filename, worksheetName, startCell, endCell, color1, color2, type);
+  }
+
+  public async addConditionalFormat(filename: string, worksheetName: string, startCell: string, endCell: string, rule: { ruleType: string; operator?: string; formula1?: string; formula2?: string; format?: Record<string, unknown> }): Promise<OperationResult<void>> {
+    return this.formatting.addConditionalFormat(filename, worksheetName, startCell, endCell, rule);
+  }
+
+  public async addDataBar(filename: string, worksheetName: string, startCell: string, endCell: string, color?: string): Promise<OperationResult<void>> {
+    return this.formatting.addDataBar(filename, worksheetName, startCell, endCell, color);
+  }
+
+  public async addColorScale(filename: string, worksheetName: string, startCell: string, endCell: string, minColor?: string, midColor?: string, maxColor?: string): Promise<OperationResult<void>> {
+    return this.formatting.addColorScale(filename, worksheetName, startCell, endCell, minColor, midColor, maxColor);
+  }
+
+  public async addIconSet(filename: string, worksheetName: string, startCell: string, endCell: string, iconSet: string): Promise<OperationResult<void>> {
+    return this.formatting.addIconSet(filename, worksheetName, startCell, endCell, iconSet);
+  }
+
+  public async removeConditionalFormat(filename: string, worksheetName: string, startCell: string, endCell: string): Promise<OperationResult<{ removed: number }>> {
+    return this.formatting.removeConditionalFormat(filename, worksheetName, startCell, endCell);
+  }
+
+  // ==================================================================
+  // Protection (previously-undispatched tools)
+  // ==================================================================
+
+  public async protectWorksheet(filename: string, worksheetName: string, password?: string, allowSelectLockedCells?: boolean, allowSelectUnlockedCells?: boolean): Promise<OperationResult<void>> {
+    return this.structureOperations.protectWorksheet(filename, worksheetName, password, allowSelectLockedCells, allowSelectUnlockedCells);
+  }
+
+  public async unprotectWorksheet(filename: string, worksheetName: string, password?: string): Promise<OperationResult<void>> {
+    return this.structureOperations.unprotectWorksheet(filename, worksheetName, password);
+  }
+
+  public async protectCells(filename: string, worksheetName: string, startCell: string, endCell: string, locked: boolean): Promise<OperationResult<void>> {
+    return this.structureOperations.protectCells(filename, worksheetName, startCell, endCell, locked);
+  }
+
+  public async protectWorkbook(password?: string): Promise<OperationResult<void>> {
+    return this.structureOperations.protectWorkbook(password);
+  }
+
+  public async unprotectWorkbook(password?: string): Promise<OperationResult<void>> {
+    return this.structureOperations.unprotectWorkbook(password);
+  }
+
+  // ==================================================================
+  // Data utilities (previously-undispatched tools)
+  // ==================================================================
+
+  public async importCsv(filename: string, worksheetName: string, csvContent: string, startCell: string, delimiter?: string): Promise<OperationResult<{ rowsImported: number }>> {
+    return this.dataUtilities.importCsv(filename, worksheetName, csvContent, startCell, delimiter);
+  }
+
+  public async exportCsv(filename: string, worksheetName: string, startCell: string, endCell: string, delimiter?: string): Promise<OperationResult<{ csv: string }>> {
+    return this.dataUtilities.exportCsv(filename, worksheetName, startCell, endCell, delimiter);
+  }
+
+  public async removeDuplicates(filename: string, worksheetName: string, startCell: string, endCell: string, columns?: (string | number)[]): Promise<OperationResult<{ removed: number; remaining: number }>> {
+    return this.dataUtilities.removeDuplicates(filename, worksheetName, startCell, endCell, columns);
+  }
+
+  public async textToColumns(filename: string, worksheetName: string, sourceCell: string, targetCell: string, delimiter: string, numberOfColumns: number): Promise<OperationResult<{ columnsWritten: number }>> {
+    return this.dataUtilities.textToColumns(filename, worksheetName, sourceCell, targetCell, delimiter, numberOfColumns);
+  }
+
+  public async flashFill(filename: string, worksheetName: string, sourceRange: string, targetRange: string): Promise<OperationResult<{ filled: number; transform: string }>> {
+    return this.dataUtilities.flashFill(filename, worksheetName, sourceRange, targetRange);
+  }
+
+  public async vlookup(filename: string, worksheetName: string, targetCell: string, lookupValue: string | number, tableArray: string, colIndex: number, rangeLookup?: boolean): Promise<OperationResult<{ formula: string }>> {
+    return this.dataUtilities.vlookup(filename, worksheetName, targetCell, lookupValue, tableArray, colIndex, rangeLookup);
+  }
+
+  public async indexMatch(filename: string, worksheetName: string, targetCell: string, returnRange: string, lookupRange: string, lookupValue: string | number): Promise<OperationResult<{ formula: string }>> {
+    return this.dataUtilities.indexMatch(filename, worksheetName, targetCell, returnRange, lookupRange, lookupValue);
+  }
+
+  public async createPivotTable(filename: string, sourceWorksheet: string, sourceStartCell: string, sourceEndCell: string, targetWorksheet: string, targetCell: string, rowFields?: string[], columnFields?: string[], valueFields?: string[]): Promise<OperationResult<{ rows: number; valueFields: string[] }>> {
+    return this.dataUtilities.createPivotTable(filename, sourceWorksheet, sourceStartCell, sourceEndCell, targetWorksheet, targetCell, rowFields, columnFields, valueFields);
   }
 }

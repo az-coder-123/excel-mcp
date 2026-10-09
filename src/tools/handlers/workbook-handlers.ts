@@ -23,7 +23,7 @@ export class WorkbookHandlers extends BaseHandler {
   async handleCreateWorkbook(args: Record<string, unknown>): Promise<OperationResult> {
     const filename = this.getStringArg(args, 'filename');
     const outputPath = this.getStringArg(args, 'outputPath');
-    
+
     if (!filename) {
       return { success: false, error: 'Missing required parameter: filename' };
     }
@@ -31,7 +31,15 @@ export class WorkbookHandlers extends BaseHandler {
       return { success: false, error: 'Missing required parameter: outputPath' };
     }
 
-    const fullPath = `${outputPath.replace(/\/$/, '')}/${filename}.xlsx`;
+    let fullPath: string;
+    if (filename.includes('/') || filename.includes('\\')) {
+      // Caller passed a complete file path — use it verbatim
+      fullPath = filename;
+    } else {
+      // Legacy semantics: filename is a workbook name, outputPath is a directory
+      const name = filename.toLowerCase().endsWith('.xlsx') ? filename : `${filename}.xlsx`;
+      fullPath = `${outputPath.replace(/\/$/, '')}/${name}`;
+    }
     return this.excelService.createWorkbook(fullPath);
   }
 
