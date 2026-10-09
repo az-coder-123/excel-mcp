@@ -70,7 +70,8 @@ export class ExcelWorkbookManager {
    */
   public async createWorkbook(filename: string): Promise<OperationResult<WorkbookInfo>> {
     try {
-      const validation = this.permissionChecker.hasPermission('write');
+      // Security: enforce full validation (permission + path + extension) on write targets
+      const validation = this.permissionChecker.validateFileAccess(filename, 0, 'write');
       if (!validation.success) {
         return { success: false, error: validation.error };
       }
@@ -114,11 +115,6 @@ export class ExcelWorkbookManager {
    */
   public async saveWorkbook(filename: string, outputPath?: string): Promise<OperationResult<void>> {
     try {
-      const validation = this.permissionChecker.hasPermission('write');
-      if (!validation.success) {
-        return { success: false, error: validation.error };
-      }
-
       const workbook = this.activeWorkbooks.get(filename);
       if (!workbook) {
         return { success: false, error: `Workbook "${filename}" not opened` };
@@ -126,10 +122,10 @@ export class ExcelWorkbookManager {
 
       const savePath = outputPath || filename;
 
-      // Validate output path
-      const pathValidation = this.permissionChecker.isPathAllowed(savePath);
-      if (!pathValidation.success) {
-        return { success: false, error: pathValidation.error };
+      // Security: enforce full validation (permission + path + extension) on the save target
+      const validation = this.permissionChecker.validateFileAccess(savePath, 0, 'write');
+      if (!validation.success) {
+        return { success: false, error: validation.error };
       }
 
       await workbook.xlsx.writeFile(savePath);
@@ -164,6 +160,12 @@ export class ExcelWorkbookManager {
     newFilePath: string
   ): Promise<OperationResult<void>> {
     try {
+      // Security: enforce full validation (permission + path + extension) on the export target
+      const validation = this.permissionChecker.validateFileAccess(newFilePath, 0, 'write');
+      if (!validation.success) {
+        return { success: false, error: validation.error };
+      }
+
       // Get the original file path from filename
       // For now, we'll save the in-memory workbook
 

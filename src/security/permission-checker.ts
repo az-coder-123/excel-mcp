@@ -3,6 +3,7 @@
  * Single Responsibility: Handles all permission validation logic
  */
 
+import path from 'node:path';
 import { Permission, PermissionConfig, OperationResult } from '../types/index.js';
 
 export class PermissionChecker {
@@ -154,12 +155,26 @@ export class PermissionChecker {
   }
 
   // Private helper methods
+
+  /**
+   * Canonicalize a path for security comparison.
+   *
+   * Uses `path.resolve()` to lexically collapse `.` and `..` segments and make
+   * the path absolute, so traversal payloads like `/allowed/../../etc/passwd`
+   * can never pass an allowed-path prefix check (audit Finding 5.1).
+   *
+   * Comparison is case-insensitive (both sides lowercased), matching the
+   * default behavior of macOS and Windows filesystems. On case-sensitive
+   * Linux filesystems this may accept paths differing only by case.
+   * Symlinks are NOT resolved (write targets may not exist yet).
+   */
   private normalizePath(filePath: string): string {
-    return filePath.replace(/\\/g, '/').toLowerCase();
+    const canonical = path.resolve(filePath);
+    return canonical.replace(/\\/g, '/').toLowerCase();
   }
 
   private matchesPath(filePath: string, pattern: string): boolean {
-    const normalizedPattern = pattern.replace(/\\/g, '/').toLowerCase();
+    const normalizedPattern = this.normalizePath(pattern);
 
     // Simple wildcard matching
     if (normalizedPattern.includes('*')) {
@@ -170,8 +185,8 @@ export class PermissionChecker {
       return regex.test(filePath);
     }
 
-    // Exact match or prefix match
-    return filePath === normalizedPattern || 
+    // Exact match or prefix match on canonical paths
+    return filePath === normalizedPattern ||
            filePath.startsWith(normalizedPattern + '/');
   }
 
