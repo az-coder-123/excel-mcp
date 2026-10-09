@@ -7,6 +7,27 @@ import { ExcelAdvancedAccounting } from '../../services/excel-advanced-accountin
 import { OperationResult } from '../../types/index.js';
 
 type ToolHandler = (args: Record<string, unknown>) => Promise<OperationResult>;
+type RatioType = 'current' | 'quick' | 'debt-to-equity' | 'return-on-equity' | 'profit-margin';
+
+/** Typed argument extraction — replaces the former `args: any` direct access (audit Finding 2.2). */
+const strArg = (args: Record<string, unknown>, key: string): string => {
+  const value = args[key];
+  if (typeof value !== 'string') {
+    throw new Error(`Missing or invalid required parameter: ${key}`);
+  }
+  return value;
+};
+
+const reqNum = (args: Record<string, unknown>, key: string): number => {
+  const value = args[key];
+  if (typeof value !== 'number') {
+    throw new Error(`Missing or invalid required parameter: ${key}`);
+  }
+  return value;
+};
+
+const optNum = (args: Record<string, unknown>, key: string): number | undefined =>
+  typeof args[key] === 'number' ? (args[key] as number) : undefined;
 
 export class AdvancedAccountingHandlers {
   private advancedAccounting: ExcelAdvancedAccounting;
@@ -18,12 +39,12 @@ export class AdvancedAccountingHandlers {
   /**
    * Calculate NPV (Net Present Value)
    */
-  calculateNPV: ToolHandler = async (args: any) => {
+  calculateNPV: ToolHandler = async (args: Record<string, unknown>) => {
     const result = await this.advancedAccounting.calculateNPV(
-      args.filename,
-      args.worksheet,
-      args.rate,
-      args.valuesRange
+      strArg(args, 'filename'),
+      strArg(args, 'worksheet'),
+      reqNum(args, 'rate'),
+      strArg(args, 'valuesRange')
     );
     return result;
   };
@@ -31,12 +52,12 @@ export class AdvancedAccountingHandlers {
   /**
    * Calculate IRR (Internal Rate of Return)
    */
-  calculateIRR: ToolHandler = async (args: any) => {
+  calculateIRR: ToolHandler = async (args: Record<string, unknown>) => {
     const result = await this.advancedAccounting.calculateIRR(
-      args.filename,
-      args.worksheet,
-      args.valuesRange,
-      args.guess
+      strArg(args, 'filename'),
+      strArg(args, 'worksheet'),
+      strArg(args, 'valuesRange'),
+      optNum(args, 'guess')
     );
     return result;
   };
@@ -44,13 +65,13 @@ export class AdvancedAccountingHandlers {
   /**
    * Calculate Financial Ratios
    */
-  calculateFinancialRatio: ToolHandler = async (args: any) => {
+  calculateFinancialRatio: ToolHandler = async (args: Record<string, unknown>) => {
     const result = await this.advancedAccounting.calculateFinancialRatios(
-      args.filename,
-      args.worksheet,
-      args.ratioType,
-      args.numeratorRange,
-      args.denominatorRange
+      strArg(args, 'filename'),
+      strArg(args, 'worksheet'),
+      strArg(args, 'ratioType') as RatioType,
+      strArg(args, 'numeratorRange'),
+      strArg(args, 'denominatorRange')
     );
     return result;
   };
@@ -58,14 +79,14 @@ export class AdvancedAccountingHandlers {
   /**
    * Create Amortization Schedule
    */
-  createAmortizationSchedule: ToolHandler = async (args: any) => {
+  createAmortizationSchedule: ToolHandler = async (args: Record<string, unknown>) => {
     const result = await this.advancedAccounting.createAmortizationSchedule(
-      args.filename,
-      args.worksheet,
-      args.startCell,
-      args.principal,
-      args.annualRate,
-      args.numberOfPeriods
+      strArg(args, 'filename'),
+      strArg(args, 'worksheet'),
+      strArg(args, 'startCell'),
+      reqNum(args, 'principal'),
+      reqNum(args, 'annualRate'),
+      reqNum(args, 'numberOfPeriods')
     );
     return result;
   };
@@ -73,8 +94,9 @@ export class AdvancedAccountingHandlers {
   /**
    * Create Aging Report
    */
-  createAgingReport: ToolHandler = async (args: any) => {
-    const date = new Date(args.asOfDate);
+  createAgingReport: ToolHandler = async (args: Record<string, unknown>) => {
+    const asOf = strArg(args, 'asOfDate');
+    const date = new Date(asOf);
     if (isNaN(date.getTime())) {
       return {
         success: false,
@@ -83,12 +105,12 @@ export class AdvancedAccountingHandlers {
     }
 
     const result = await this.advancedAccounting.createAgingReport(
-      args.filename,
-      args.worksheet,
-      args.invoiceDateColumn,
-      args.amountColumn,
+      strArg(args, 'filename'),
+      strArg(args, 'worksheet'),
+      strArg(args, 'invoiceDateColumn'),
+      strArg(args, 'amountColumn'),
       date,
-      args.outputStartCell
+      strArg(args, 'outputStartCell')
     );
     return result;
   };
@@ -96,13 +118,13 @@ export class AdvancedAccountingHandlers {
   /**
    * Calculate Tax
    */
-  calculateTax: ToolHandler = async (args: any) => {
+  calculateTax: ToolHandler = async (args: Record<string, unknown>) => {
     const result = await this.advancedAccounting.calculateTax(
-      args.filename,
-      args.worksheet,
-      args.amountRange,
-      args.taxRate,
-      args.outputRange
+      strArg(args, 'filename'),
+      strArg(args, 'worksheet'),
+      strArg(args, 'amountRange'),
+      reqNum(args, 'taxRate'),
+      strArg(args, 'outputRange')
     );
     return result;
   };
@@ -110,13 +132,13 @@ export class AdvancedAccountingHandlers {
   /**
    * Convert Currency
    */
-  convertCurrency: ToolHandler = async (args: any) => {
+  convertCurrency: ToolHandler = async (args: Record<string, unknown>) => {
     const result = await this.advancedAccounting.convertCurrency(
-      args.filename,
-      args.worksheet,
-      args.amountRange,
-      args.exchangeRate,
-      args.outputRange
+      strArg(args, 'filename'),
+      strArg(args, 'worksheet'),
+      strArg(args, 'amountRange'),
+      reqNum(args, 'exchangeRate'),
+      strArg(args, 'outputRange')
     );
     return result;
   };

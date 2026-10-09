@@ -22,6 +22,7 @@ import {
   WorksheetHandlers
 } from './handlers/index.js';
 import { getToolDefinition } from './tool-definitions.js';
+import { validateToolArgs } from './input-validator.js';
 
 export class ToolHandler {
   private permissionChecker: PermissionChecker;
@@ -84,6 +85,13 @@ export class ToolHandler {
       if (!permResult.success) {
         return permResult;
       }
+    }
+
+    // Runtime input validation via Zod (audit Finding 2.1, Phase 3 C2)
+    const validation = validateToolArgs(toolDef, args);
+    if (!validation.success) {
+      this.logger.warn(`Validation failed for ${toolName}: ${validation.error}`);
+      return { success: false, error: validation.error };
     }
 
     // Execute tool by delegating to appropriate handler

@@ -8,6 +8,32 @@ import { OperationResult } from '../../types/index.js';
 
 type ToolHandler = (args: Record<string, unknown>) => Promise<OperationResult>;
 
+/** Typed argument extraction — replaces the former `args: any` direct access (audit Finding 2.2). */
+const strArg = (args: Record<string, unknown>, key: string): string => {
+  const value = args[key];
+  if (typeof value !== 'string') {
+    throw new Error(`Missing or invalid required parameter: ${key}`);
+  }
+  return value;
+};
+
+const reqNum = (args: Record<string, unknown>, key: string): number => {
+  const value = args[key];
+  if (typeof value !== 'number') {
+    throw new Error(`Missing or invalid required parameter: ${key}`);
+  }
+  return value;
+};
+
+const optBool = (args: Record<string, unknown>, key: string): boolean | undefined =>
+  typeof args[key] === 'boolean' ? (args[key] as boolean) : undefined;
+
+const optNum = (args: Record<string, unknown>, key: string): number | undefined =>
+  typeof args[key] === 'number' ? (args[key] as number) : undefined;
+
+const optStr = (args: Record<string, unknown>, key: string): string | undefined =>
+  typeof args[key] === 'string' ? (args[key] as string) : undefined;
+
 export class AccountingHandlers {
   private accountingService: ExcelAccounting;
 
@@ -16,156 +42,156 @@ export class AccountingHandlers {
   }
 
   // Financial Calculations
-  financialSum: ToolHandler = async (args: any) => {
+  financialSum: ToolHandler = async (args: Record<string, unknown>) => {
     const result = await this.accountingService.calculateSum(
-      args.filename,
-      args.worksheet,
-      args.rangeStart,
-      args.rangeEnd,
-      args.criteriaColumn,
-      args.criteriaValue
+      strArg(args, 'filename'),
+      strArg(args, 'worksheet'),
+      strArg(args, 'rangeStart'),
+      strArg(args, 'rangeEnd'),
+      optStr(args, 'criteriaColumn'),
+      optStr(args, 'criteriaValue')
     );
     return result;
   };
 
-  financialAverage: ToolHandler = async (args: any) => {
+  financialAverage: ToolHandler = async (args: Record<string, unknown>) => {
     const result = await this.accountingService.calculateAverage(
-      args.filename,
-      args.worksheet,
-      args.rangeStart,
-      args.rangeEnd
+      strArg(args, 'filename'),
+      strArg(args, 'worksheet'),
+      strArg(args, 'rangeStart'),
+      strArg(args, 'rangeEnd')
     );
     return result;
   };
 
-  runningTotal: ToolHandler = async (args: any) => {
+  runningTotal: ToolHandler = async (args: Record<string, unknown>) => {
     const result = await this.accountingService.calculateRunningTotal(
-      args.filename,
-      args.worksheet,
-      args.valueStartCell,
-      args.valueEndCell,
-      args.outputStartCell
+      strArg(args, 'filename'),
+      strArg(args, 'worksheet'),
+      strArg(args, 'valueStartCell'),
+      strArg(args, 'valueEndCell'),
+      strArg(args, 'outputStartCell')
     );
     return result;
   };
 
-  percentageOfTotal: ToolHandler = async (args: any) => {
+  percentageOfTotal: ToolHandler = async (args: Record<string, unknown>) => {
     const result = await this.accountingService.calculatePercentageOfTotal(
-      args.filename,
-      args.worksheet,
-      args.valueStartCell,
-      args.valueEndCell,
-      args.outputStartCell
+      strArg(args, 'filename'),
+      strArg(args, 'worksheet'),
+      strArg(args, 'valueStartCell'),
+      strArg(args, 'valueEndCell'),
+      strArg(args, 'outputStartCell')
     );
     return result;
   };
 
-  yearToDate: ToolHandler = async (args: any) => {
+  yearToDate: ToolHandler = async (args: Record<string, unknown>) => {
     const result = await this.accountingService.calculateYTD(
-      args.filename,
-      args.worksheet,
-      args.dateColumn,
-      args.valueColumn,
-      args.rangeStart,
-      args.rangeEnd,
-      args.outputColumn
+      strArg(args, 'filename'),
+      strArg(args, 'worksheet'),
+      strArg(args, 'dateColumn'),
+      strArg(args, 'valueColumn'),
+      strArg(args, 'rangeStart'),
+      strArg(args, 'rangeEnd'),
+      strArg(args, 'outputColumn')
     );
     return result;
   };
 
   // Accounting Formats
-  accountingFormat: ToolHandler = async (args: any) => {
+  accountingFormat: ToolHandler = async (args: Record<string, unknown>) => {
     const result = await this.accountingService.applyAccountingFormat(
-      args.filename,
-      args.worksheet,
-      args.startCell,
-      args.endCell,
+      strArg(args, 'filename'),
+      strArg(args, 'worksheet'),
+      strArg(args, 'startCell'),
+      strArg(args, 'endCell'),
       {
-        decimalPlaces: args.decimalPlaces,
-        useSeparator: args.useSeparator,
-        showNegativeInRed: args.showNegativeInRed,
-        showNegativeInParentheses: args.showNegativeInParentheses,
-        currencySymbol: args.currencySymbol,
+        decimalPlaces: optNum(args, 'decimalPlaces'),
+        useSeparator: optBool(args, 'useSeparator'),
+        showNegativeInRed: optBool(args, 'showNegativeInRed'),
+        showNegativeInParentheses: optBool(args, 'showNegativeInParentheses'),
+        currencySymbol: optStr(args, 'currencySymbol'),
       }
     );
     return result;
   };
 
-  vndCurrencyFormat: ToolHandler = async (args: any) => {
+  vndCurrencyFormat: ToolHandler = async (args: Record<string, unknown>) => {
     const result = await this.accountingService.applyVNDCurrencyFormat(
-      args.filename,
-      args.worksheet,
-      args.startCell,
-      args.endCell,
-      args.decimalPlaces
+      strArg(args, 'filename'),
+      strArg(args, 'worksheet'),
+      strArg(args, 'startCell'),
+      strArg(args, 'endCell'),
+      optNum(args, 'decimalPlaces')
     );
     return result;
   };
 
-  negativeRedFormat: ToolHandler = async (args: any) => {
+  negativeRedFormat: ToolHandler = async (args: Record<string, unknown>) => {
     const result = await this.accountingService.applyNegativeRedFormat(
-      args.filename,
-      args.worksheet,
-      args.startCell,
-      args.endCell,
-      args.decimalPlaces
+      strArg(args, 'filename'),
+      strArg(args, 'worksheet'),
+      strArg(args, 'startCell'),
+      strArg(args, 'endCell'),
+      optNum(args, 'decimalPlaces')
     );
     return result;
   };
 
-  showZerosInsteadOfEmpty: ToolHandler = async (args: any) => {
+  showZerosInsteadOfEmpty: ToolHandler = async (args: Record<string, unknown>) => {
     const result = await this.accountingService.showZerosInsteadOfEmpty(
-      args.filename,
-      args.worksheet,
-      args.startCell,
-      args.endCell
+      strArg(args, 'filename'),
+      strArg(args, 'worksheet'),
+      strArg(args, 'startCell'),
+      strArg(args, 'endCell')
     );
     return result;
   };
 
   // Financial Analysis
-  periodComparison: ToolHandler = async (args: any) => {
+  periodComparison: ToolHandler = async (args: Record<string, unknown>) => {
     const result = await this.accountingService.calculatePeriodComparison(
-      args.filename,
-      args.worksheet,
-      args.currentValueRange,
-      args.previousValueRange,
-      args.outputRange,
-      args.showPercentage
+      strArg(args, 'filename'),
+      strArg(args, 'worksheet'),
+      strArg(args, 'currentValueRange'),
+      strArg(args, 'previousValueRange'),
+      strArg(args, 'outputRange'),
+      optBool(args, 'showPercentage')
     );
     return result;
   };
 
-  varianceAnalysis: ToolHandler = async (args: any) => {
+  varianceAnalysis: ToolHandler = async (args: Record<string, unknown>) => {
     const result = await this.accountingService.calculateVariance(
-      args.filename,
-      args.worksheet,
-      args.budgetRange,
-      args.actualRange,
-      args.outputRange,
-      args.showPercentage
+      strArg(args, 'filename'),
+      strArg(args, 'worksheet'),
+      strArg(args, 'budgetRange'),
+      strArg(args, 'actualRange'),
+      strArg(args, 'outputRange'),
+      optBool(args, 'showPercentage')
     );
     return result;
   };
 
   // Validation & Checks
-  checkBalance: ToolHandler = async (args: any) => {
+  checkBalance: ToolHandler = async (args: Record<string, unknown>) => {
     const result = await this.accountingService.checkBalance(
-      args.filename,
-      args.worksheet,
-      args.debitRange,
-      args.creditRange
+      strArg(args, 'filename'),
+      strArg(args, 'worksheet'),
+      strArg(args, 'debitRange'),
+      strArg(args, 'creditRange')
     );
     return result;
   };
 
-  findAnomalies: ToolHandler = async (args: any) => {
+  findAnomalies: ToolHandler = async (args: Record<string, unknown>) => {
     const result = await this.accountingService.findAnomalies(
-      args.filename,
-      args.worksheet,
-      args.rangeStart,
-      args.rangeEnd,
-      args.stdDevThreshold
+      strArg(args, 'filename'),
+      strArg(args, 'worksheet'),
+      strArg(args, 'rangeStart'),
+      strArg(args, 'rangeEnd'),
+      reqNum(args, 'stdDevThreshold')
     );
     return result;
   };
