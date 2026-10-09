@@ -7,6 +7,7 @@ import ExcelJS from 'exceljs';
 import { PermissionChecker } from '../security/permission-checker.js';
 import { Logger } from '../utils/logger.js';
 import { OperationResult } from '../types/index.js';
+import { columnLetterToNumber } from '../utils/excel-coords.js';
 
 export class ExcelAccounting {
   private logger: Logger;
@@ -57,23 +58,32 @@ export class ExcelAccounting {
       if (criteriaColumn && criteriaValue) {
         // Sum with criteria
         const criteriaColIndex = this.getColumnIndex(rangeStart, criteriaColumn);
-        const targetColIndex = this.getColumnIndex(rangeStart, rangeStart.match(/^([A-Z]+)/)![1]);
 
         for (let i = 0; i < data.length; i++) {
           const row = data[i];
-          if (row[criteriaColIndex] === criteriaValue && typeof row[targetColIndex] === 'number') {
-            sum += row[targetColIndex] as number;
+          const cellVal = row[criteriaColIndex];
+          const matches = cellVal !== null && cellVal !== undefined && (String(cellVal) === String(criteriaValue) || cellVal === criteriaValue);
+
+          if (matches) {
+            for (let c = 0; c < row.length; c++) {
+              if (c !== criteriaColIndex && typeof row[c] === 'number') {
+                sum += row[c] as number;
+              }
+            }
           }
         }
       } else {
-        // Simple sum
-        const targetColIndex = this.getColumnIndex(rangeStart, rangeStart.match(/^([A-Z]+)/)![1]);
+        // Multi-column simple sum
         for (const row of data) {
-          if (typeof row[targetColIndex] === 'number') {
-            sum += row[targetColIndex] as number;
+          for (let c = 0; c < row.length; c++) {
+            if (typeof row[c] === 'number') {
+              sum += row[c] as number;
+            }
           }
         }
       }
+
+      sum = Math.round(sum * 1e6) / 1e6;
 
       this.logger.info(`Calculated sum for ${filename}!${worksheetName}: ${sum}`);
       return { success: true, data: { sum } };
@@ -111,16 +121,18 @@ export class ExcelAccounting {
 
       let sum = 0;
       let count = 0;
-      const targetColIndex = this.getColumnIndex(rangeStart, rangeStart.match(/^([A-Z]+)/)![1]);
 
       for (const row of data) {
-        if (typeof row[targetColIndex] === 'number') {
-          sum += row[targetColIndex] as number;
-          count++;
+        for (let c = 0; c < row.length; c++) {
+          if (typeof row[c] === 'number') {
+            sum += row[c] as number;
+            count++;
+          }
         }
       }
 
-      const average = count > 0 ? sum / count : 0;
+      const rawAvg = count > 0 ? sum / count : 0;
+      const average = Math.round(rawAvg * 1e6) / 1e6;
 
       this.logger.info(`Calculated average for ${filename}!${worksheetName}: ${average}`);
       return { success: true, data: { average, count } };
@@ -783,11 +795,7 @@ export class ExcelAccounting {
   }
 
   private columnToNumber(column: string): number {
-    let result = 0;
-    for (let i = 0; i < column.length; i++) {
-      result = result * 26 + (column.charCodeAt(i) - 'A'.charCodeAt(0) + 1);
-    }
-    return result;
+    return columnLetterToNumber(column);
   }
 
   private applyFormatToRange(

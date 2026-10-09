@@ -7,6 +7,7 @@ import ExcelJS from 'exceljs';
 import { CellValue, CellRange, OperationResult } from '../types/index.js';
 import { PermissionChecker } from '../security/permission-checker.js';
 import { Logger } from '../utils/logger.js';
+import { parseCellAddress as parseCoordAddress } from '../utils/excel-coords.js';
 
 export class ExcelCellOperations {
   private permissionChecker: PermissionChecker;
@@ -115,7 +116,7 @@ export class ExcelCellOperations {
       }
 
       const cell = worksheet.getCell(cellAddress);
-      cell.value = value as ExcelJS.CellValue;
+      cell.value = this.normalizeCellValue(value);
 
       this.logger.info(`Wrote value to ${filename}!${worksheetName}!${cellAddress}`);
 
@@ -152,7 +153,7 @@ export class ExcelCellOperations {
 
       for (const item of data) {
         const cell = worksheet.getCell(item.cellAddress);
-        cell.value = item.value as ExcelJS.CellValue;
+        cell.value = this.normalizeCellValue(item.value);
       }
 
       this.logger.info(`Wrote ${data.length} values to ${filename}!${worksheetName}`);
@@ -437,14 +438,17 @@ export class ExcelCellOperations {
     return { address, value, type, formula };
   }
 
+  private normalizeCellValue(value: unknown): ExcelJS.CellValue {
+    if (typeof value === 'string' && value.startsWith('=') && value.length > 1) {
+      return { formula: value.slice(1) };
+    }
+    return value as ExcelJS.CellValue;
+  }
+
   private parseCellAddress(address: string): { row: number; column: number } | null {
-    const match = address.match(/^([A-Z]+)(\d+)$/i);
-    if (!match) return null;
-
-    const column = this.columnLetterToNumber(match[1].toUpperCase());
-    const row = parseInt(match[2], 10);
-
-    return { row, column };
+    const parsed = parseCoordAddress(address);
+    if (!parsed) return null;
+    return { row: parsed.row, column: parsed.column };
   }
 
   private parseCellRange(startCell: string, endCell: string): CellRange | null {
@@ -454,13 +458,5 @@ export class ExcelCellOperations {
     if (!start || !end) return null;
 
     return { start, end };
-  }
-
-  private columnLetterToNumber(column: string): number {
-    let result = 0;
-    for (let i = 0; i < column.length; i++) {
-      result = result * 26 + (column.charCodeAt(i) - 64);
-    }
-    return result;
   }
 }

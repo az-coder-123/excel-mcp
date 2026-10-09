@@ -6,22 +6,32 @@
 import { BaseHandler } from './base-handler.js';
 import { OperationResult } from '../../types/index.js';
 import { ExcelService } from '../../services/excel-service.js';
+import { PermissionChecker } from '../../security/permission-checker.js';
+import { Logger } from '../../utils/logger.js';
 import * as os from 'os';
 import * as path from 'path';
 import * as fs from 'fs';
 
 export class SystemHandlers extends BaseHandler {
-  private permissionChecker?: any;
-  private logger?: any;
+  private permissionChecker: PermissionChecker;
+  private logger: Logger;
 
   constructor(
     excelService: ExcelService,
-    permissionChecker?: any,
-    logger?: any
+    permissionChecker?: PermissionChecker,
+    logger?: Logger
   ) {
     super(excelService);
-    this.permissionChecker = permissionChecker;
-    this.logger = logger;
+    this.permissionChecker =
+      permissionChecker ??
+      new PermissionChecker({
+        allowedPaths: [],
+        deniedPaths: [],
+        maxFileSize: 50 * 1024 * 1024,
+        allowedExtensions: ['.xlsx', '.xls', '.xlsm', '.xlsb'],
+        permissions: ['read', 'write', 'delete'],
+      });
+    this.logger = logger ?? new Logger('info');
   }
 
   /**

@@ -7,6 +7,7 @@ import ExcelJS from 'exceljs';
 import { PermissionChecker } from '../security/permission-checker.js';
 import { Logger } from '../utils/logger.js';
 import { OperationResult } from '../types/index.js';
+import { columnLetterToNumber, numberToColumn } from '../utils/excel-coords.js';
 
 export class ExcelAdvancedAccounting {
   private logger: Logger;
@@ -566,20 +567,10 @@ export class ExcelAdvancedAccounting {
   }
 
   private columnToNumber(column: string): number {
-    let result = 0;
-    for (let i = 0; i < column.length; i++) {
-      result = result * 26 + (column.charCodeAt(i) - 'A'.charCodeAt(0) + 1);
-    }
-    return result;
+    return columnLetterToNumber(column);
   }
 
   private numberToColumn(num: number): string {
-    let column = '';
-    while (num > 0) {
-      num--;
-      column = String.fromCharCode(65 + (num % 26)) + column;
-      num = Math.floor(num / 26);
-    }
-    return column;
+    return numberToColumn(num);
   }
 }

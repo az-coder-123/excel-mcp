@@ -7,6 +7,7 @@ import ExcelJS from 'exceljs';
 import { OperationResult } from '../types/index.js';
 import { PermissionChecker } from '../security/permission-checker.js';
 import { Logger } from '../utils/logger.js';
+import { columnLetterToNumber } from '../utils/excel-coords.js';
 
 export class ExcelFormatting {
   private permissionChecker: PermissionChecker;
@@ -1571,11 +1572,7 @@ export class ExcelFormatting {
   }
 
   private columnLetterToNumber(column: string): number {
-    let result = 0;
-    for (let i = 0; i < column.length; i++) {
-      result = result * 26 + (column.charCodeAt(i) - 64);
-    }
-    return result;
+    return columnLetterToNumber(column);
   }
 
   private parseCellRange(startCell: string, endCell: string): { start: { row: number; column: number }; end: { row: number; column: number } } | null {
