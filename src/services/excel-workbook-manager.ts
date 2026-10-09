@@ -44,7 +44,8 @@ export class ExcelWorkbookManager {
       await workbook.xlsx.readFile(filePath);
 
       const filename = this.getFilename(filePath);
-      this.registerWorkbook(filename, workbook, path.resolve(filePath));
+      const canonicalPath = path.resolve(filePath);
+      this.registerWorkbook(canonicalPath, workbook, canonicalPath);
 
       const worksheets: WorksheetInfo[] = workbook.worksheets.map((ws, index) => ({
         name: ws.name,
@@ -88,12 +89,15 @@ export class ExcelWorkbookManager {
 
       const worksheet = workbook.addWorksheet('Sheet1');
 
-      this.registerWorkbook(filename, workbook, path.resolve(filename));
+      const canonicalPath = path.resolve(filename);
+      const displayName = this.getFilename(filename);
+
+      this.registerWorkbook(canonicalPath, workbook, canonicalPath);
 
       // Auto-save the workbook to disk
-      await workbook.xlsx.writeFile(filename);
+      await workbook.xlsx.writeFile(canonicalPath);
 
-      this.logger.info(`Created and saved new workbook: ${filename}`);
+      this.logger.info(`Created and saved new workbook: ${displayName}`);
 
       return {
         success: true,
@@ -121,15 +125,19 @@ export class ExcelWorkbookManager {
    */
   public async saveWorkbook(filename: string, outputPath?: string): Promise<OperationResult<void>> {
     try {
-      const workbook = this.activeWorkbooks.get(filename);
+      const key = this.resolveWorkbookKey(filename);
+      if (!key) {
+        return { success: false, error: `Workbook "${filename}" not opened` };
+      }
+      const workbook = this.activeWorkbooks.get(key);
       if (!workbook) {
         return { success: false, error: `Workbook "${filename}" not opened` };
       }
-      this.touchWorkbook(filename);
+      this.touchWorkbook(key);
 
       // Without an explicit output path, save back to the workbook's original
       // on-disk location instead of resolving against process.cwd() (Finding 1.3)
-      const savePath = outputPath || this.sourcePaths.get(filename) || filename;
+      const savePath = outputPath ? path.resolve(outputPath) : (this.sourcePaths.get(key) || key);
 
       // Security: enforce full validation (permission + path + extension) on the save target
       const validation = this.permissionChecker.validateFileAccess(savePath, 0, 'write');
@@ -152,10 +160,11 @@ export class ExcelWorkbookManager {
    * Close workbook
    */
   public closeWorkbook(filename: string): OperationResult<void> {
-    if (this.activeWorkbooks.has(filename)) {
-      this.activeWorkbooks.delete(filename);
-      this.sourcePaths.delete(filename);
-      this.logger.info(`Closed workbook: ${filename}`);
+    const key = this.resolveWorkbookKey(filename);
+    if (key && this.activeWorkbooks.has(key)) {
+      this.activeWorkbooks.delete(key);
+      this.sourcePaths.delete(key);
+      this.logger.info(`Closed workbook: ${key}`);
       return { success: true };
     }
     return { success: false, error: `Workbook "${filename}" not found` };
@@ -179,7 +188,7 @@ export class ExcelWorkbookManager {
       // Get the original file path from filename
       // For now, we'll save the in-memory workbook
 
-      const sourceWorkbook = this.activeWorkbooks.get(filename);
+      const sourceWorkbook = this.getWorkbook(filename);
       if (!sourceWorkbook) {
         return { success: false, error: `Workbook "${filename}" not opened` };
       }
@@ -224,9 +233,10 @@ export class ExcelWorkbookManager {
     worksheets: WorksheetInfo[];
     currentWorksheet: string | null;
   }> {
-    const workbook = this.activeWorkbooks.get(filename);
+    const key = this.resolveWorkbookKey(filename);
+    const workbook = key ? this.activeWorkbooks.get(key) : undefined;
 
-    if (!workbook) {
+    if (!workbook || !key) {
       return {
         success: true,
         data: {
@@ -250,7 +260,7 @@ export class ExcelWorkbookManager {
       success: true,
       data: {
         isOpen: true,
-        filePath: filename,
+        filePath: this.sourcePaths.get(key) || key,
         worksheets,
         currentWorksheet: worksheets[0]?.name || null,
       },
@@ -258,12 +268,44 @@ export class ExcelWorkbookManager {
   }
 
   /**
-   * Get workbook by filename
+   * Resolve workbook key: exact match -> canonical path match -> unique basename match
+   */
+  public resolveWorkbookKey(filename: string): string | undefined {
+    if (this.activeWorkbooks.has(filename)) {
+      return filename;
+    }
+    const resolved = path.resolve(filename);
+    if (this.activeWorkbooks.has(resolved)) {
+      return resolved;
+    }
+    // Only perform fuzzy basename lookup if the caller supplied a bare filename (no directory separators)
+    const isBareFilename = !filename.includes('/') && !filename.includes('\\');
+    if (!isBareFilename) {
+      return undefined;
+    }
+
+    const base = this.getFilename(filename);
+    const matches: string[] = [];
+    for (const k of this.activeWorkbooks.keys()) {
+      if (this.getFilename(k) === base || this.getFilename(this.sourcePaths.get(k) || '') === base) {
+        matches.push(k);
+      }
+    }
+    if (matches.length === 1) {
+      return matches[0];
+    }
+    return undefined;
+  }
+
+  /**
+   * Get workbook by filename or path
    */
   public getWorkbook(filename: string): ExcelJS.Workbook | undefined {
-    const workbook = this.activeWorkbooks.get(filename);
+    const key = this.resolveWorkbookKey(filename);
+    if (!key) return undefined;
+    const workbook = this.activeWorkbooks.get(key);
     if (workbook) {
-      this.touchWorkbook(filename);
+      this.touchWorkbook(key);
     }
     return workbook;
   }

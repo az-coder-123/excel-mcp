@@ -60,10 +60,10 @@ export class ToolHandler {
     this.extendedFormattingHandlers = new ExtendedFormattingHandlers(excelService);
     this.commentDataHandlers = new CommentDataHandlers(excelService);
     this.advancedDataHandlers = new AdvancedDataHandlers(excelService);
-    this.analysisHandlers = new AnalysisHandlers(excelService['activeWorkbooks']);
-    this.accountingHandlers = new AccountingHandlers(excelService['accounting']);
-    this.advancedAccountingHandlers = new AdvancedAccountingHandlers(excelService['advancedAccounting']);
-    this.formulaAnalysisHandlers = new FormulaAnalysisHandlers(excelService['formulaAnalyzer']);
+    this.analysisHandlers = new AnalysisHandlers(excelService.getActiveWorkbooks());
+    this.accountingHandlers = new AccountingHandlers(excelService.getAccounting());
+    this.advancedAccountingHandlers = new AdvancedAccountingHandlers(excelService.getAdvancedAccounting());
+    this.formulaAnalysisHandlers = new FormulaAnalysisHandlers(excelService.getFormulaAnalyzer());
     this.systemHandlers = new SystemHandlers(excelService, permissionChecker, logger);
     this.chartHandlers = new ChartHandlers(excelService);
     this.conditionalFormattingHandlers = new ConditionalFormattingHandlers(excelService);

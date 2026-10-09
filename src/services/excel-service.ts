@@ -27,11 +27,11 @@ export class ExcelService {
   private cellOperations: ExcelCellOperations;
   private structureOperations: ExcelStructureOperations;
   private formatting: ExcelFormatting;
-  public accounting: ExcelAccounting;
-  public advancedAccounting: ExcelAdvancedAccounting;
-  public formulaAnalyzer: ExcelFormulaAnalyzer;
-  public dataUtilities: ExcelDataUtilities;
-  public activeWorkbooks: Map<string, ExcelJS.Workbook>;
+  private accounting: ExcelAccounting;
+  private advancedAccounting: ExcelAdvancedAccounting;
+  private formulaAnalyzer: ExcelFormulaAnalyzer;
+  private dataUtilities: ExcelDataUtilities;
+  private activeWorkbooks: Map<string, ExcelJS.Workbook>;
   private logger: Logger;
 
   constructor(permissionChecker: PermissionChecker, logger: Logger) {
@@ -45,6 +45,27 @@ export class ExcelService {
     this.advancedAccounting = new ExcelAdvancedAccounting(permissionChecker, logger, this.activeWorkbooks);
     this.formulaAnalyzer = new ExcelFormulaAnalyzer(this.activeWorkbooks);
     this.dataUtilities = new ExcelDataUtilities(permissionChecker, logger, this.activeWorkbooks);
+  }
+
+  // Sub-service accessors for tool handlers requiring specialized domain delegation
+  public getAccounting(): ExcelAccounting {
+    return this.accounting;
+  }
+
+  public getAdvancedAccounting(): ExcelAdvancedAccounting {
+    return this.advancedAccounting;
+  }
+
+  public getFormulaAnalyzer(): ExcelFormulaAnalyzer {
+    return this.formulaAnalyzer;
+  }
+
+  public getDataUtilities(): ExcelDataUtilities {
+    return this.dataUtilities;
+  }
+
+  public getActiveWorkbooks(): Map<string, ExcelJS.Workbook> {
+    return this.activeWorkbooks;
   }
 
   // Workbook operations

@@ -226,3 +226,59 @@ describe('createAgingReport — audit Finding 4.2: Excel serial date support', (
     expect(result.success).toBe(false);
   });
 });
+
+describe('createAmortizationSchedule — audit Finding 4.1: zero-rate loan guard', () => {
+  const buildAmortizationSheet = () => {
+    const { service, workbooks } = makeService();
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet('Amort');
+    workbooks.set('loan.xlsx', wb);
+    return { service, workbooks, ws };
+  };
+
+  it('handles zero interest rate (annualRate === 0) without division-by-zero or NaN', async () => {
+    const { service, ws } = buildAmortizationSheet();
+    const result = await service.createAmortizationSchedule('loan.xlsx', 'Amort', 'A1', 12000, 0, 12);
+    expect(result.success).toBe(true);
+
+    // Header check
+    expect(ws.getCell('A1').value).toBe('Period');
+    expect(ws.getCell('B1').value).toBe('Payment');
+    expect(ws.getCell('C1').value).toBe('Principal');
+    expect(ws.getCell('D1').value).toBe('Interest');
+    expect(ws.getCell('E1').value).toBe('Balance');
+
+    // Each month: payment = 1000, principal = 1000, interest = 0
+    expect(ws.getCell('B2').value).toBe(1000);
+    expect(ws.getCell('C2').value).toBe(1000);
+    expect(ws.getCell('D2').value).toBe(0);
+    expect(ws.getCell('E2').value).toBe(11000);
+
+    // Final period 12
+    expect(ws.getCell('B13').value).toBe(1000);
+    expect(ws.getCell('C13').value).toBe(1000);
+    expect(ws.getCell('D13').value).toBe(0);
+    expect(ws.getCell('E13').value).toBe(0);
+  });
+
+  it('computes standard amortization with positive annualRate', async () => {
+    const { service, ws } = buildAmortizationSheet();
+    const result = await service.createAmortizationSchedule('loan.xlsx', 'Amort', 'A1', 10000, 0.05, 12);
+    expect(result.success).toBe(true);
+
+    const payment = ws.getCell('B2').value as number;
+    expect(payment).toBeGreaterThan(800);
+    expect(payment).toBeLessThan(900);
+    expect(ws.getCell('D2').value).toBeCloseTo(10000 * (0.05 / 12), 2);
+    // Ending balance at period 12 should be approximately 0
+    expect(ws.getCell('E13').value).toBeCloseTo(0, 1);
+  });
+
+  it('rejects invalid numberOfPeriods <= 0', async () => {
+    const { service } = buildAmortizationSheet();
+    const result = await service.createAmortizationSchedule('loan.xlsx', 'Amort', 'A1', 10000, 0.05, 0);
+    expect(result.success).toBe(false);
+    expect(result.error).toMatch(/numberOfPeriods must be greater than zero/i);
+  });
+});
+

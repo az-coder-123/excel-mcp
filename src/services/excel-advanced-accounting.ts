@@ -269,9 +269,15 @@ export class ExcelAdvancedAccounting {
       const startCol = startCell.match(/^([A-Z]+)/)![1];
       const startRow = parseInt(startCell.match(/\d+/)![0], 10);
 
-      // Calculate monthly payment
+      if (numberOfPeriods <= 0) {
+        return { success: false, error: 'numberOfPeriods must be greater than zero' };
+      }
+
+      // Calculate monthly payment (guarding against division by zero when annualRate === 0)
       const monthlyRate = annualRate / 12;
-      const payment = principal * (monthlyRate * Math.pow(1 + monthlyRate, numberOfPeriods)) / (Math.pow(1 + monthlyRate, numberOfPeriods) - 1);
+      const payment = annualRate === 0
+        ? principal / numberOfPeriods
+        : principal * (monthlyRate * Math.pow(1 + monthlyRate, numberOfPeriods)) / (Math.pow(1 + monthlyRate, numberOfPeriods) - 1);
 
       let balance = principal;
 
@@ -284,8 +290,8 @@ export class ExcelAdvancedAccounting {
 
       // Calculate schedule
       for (let i = 1; i <= numberOfPeriods; i++) {
-        const interest = balance * monthlyRate;
-        const principalPaid = payment - interest;
+        const interest = annualRate === 0 ? 0 : balance * monthlyRate;
+        const principalPaid = annualRate === 0 ? payment : payment - interest;
         balance -= principalPaid;
 
         const row = startRow + i;

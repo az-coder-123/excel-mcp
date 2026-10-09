@@ -211,3 +211,50 @@ describe('openWorkbook / closeWorkbook — lifecycle', () => {
     expect(second.error).toMatch(/not found/i);
   });
 });
+
+describe('canonical path keys & fuzzy lookup — audit Finding 1.2', () => {
+  it('prevents basename key collision when workbooks have identical filenames in different directories', async () => {
+    const dirA = path.join(tmpRoot, 'dirA');
+    const dirB = path.join(tmpRoot, 'dirB');
+    fs.mkdirSync(dirA, { recursive: true });
+    fs.mkdirSync(dirB, { recursive: true });
+
+    const fileA = path.join(dirA, 'report.xlsx');
+    const fileB = path.join(dirB, 'report.xlsx');
+
+    const resA = await manager.createWorkbook(fileA);
+    const resB = await manager.createWorkbook(fileB);
+
+    expect(resA.success).toBe(true);
+    expect(resB.success).toBe(true);
+
+    const wbA = manager.getWorkbook(fileA);
+    const wbB = manager.getWorkbook(fileB);
+
+    expect(wbA).toBeDefined();
+    expect(wbB).toBeDefined();
+    expect(wbA).not.toBe(wbB); // They are distinct instances in memory!
+
+    // Add unique sheet markers
+    wbA?.addWorksheet('FromDirA');
+    wbB?.addWorksheet('FromDirB');
+
+    expect(manager.getWorkbook(fileA)?.getWorksheet('FromDirA')).toBeDefined();
+    expect(manager.getWorkbook(fileB)?.getWorksheet('FromDirB')).toBeDefined();
+    expect(manager.getWorkbook(fileA)?.getWorksheet('FromDirB')).toBeUndefined();
+
+    // Ambiguity check: basename 'report.xlsx' matches multiple active workbooks, so fuzzy lookup returns undefined
+    expect(manager.getWorkbook('report.xlsx')).toBeUndefined();
+
+    // Closing one leaves the other intact and re-enables unique fuzzy lookup
+    manager.closeWorkbook(fileA);
+    expect(manager.getWorkbook(fileA)).toBeUndefined();
+    expect(manager.getWorkbook(fileB)).toBeDefined();
+    // Now unique fuzzy lookup for 'report.xlsx' resolves to fileB
+    expect(manager.getWorkbook('report.xlsx')).toBeDefined();
+    expect(manager.getWorkbook('report.xlsx')?.getWorksheet('FromDirB')).toBeDefined();
+
+    manager.closeWorkbook(fileB);
+  });
+});
+

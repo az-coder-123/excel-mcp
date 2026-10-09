@@ -1,7 +1,7 @@
 # Excel MCP Server — Active Project Audit & Roadmap Report
 
 > **Evaluation Date**: October 2026  
-> **Status**: Core Security, Mathematical, Validation & QA Foundations Resolved  
+> **Status**: Core Security, Mathematical, Validation, Canonical Paths & Encapsulation Resolved  
 > **Evaluation Framework**: 6 Assigned Expert Personas ([docs/AI_WORKFLOW.md](AI_WORKFLOW.md))  
 > **Target Audience**: AI Assistants (GitHub Copilot, Cline, Antigravity, Claude, ChatGPT), Lead Architects, and Developers.
 
@@ -9,19 +9,19 @@
 
 ## Executive Summary & Scorecard
 
-Following remediation across Phase 1 and Phase 2, the core vulnerabilities (path traversal, IRR mathematical defects, lack of tests, and missing Zod runtime validation) have been resolved. The test suite now passes **123 tests across 7 test suites** with zero compiler or linter errors.
+Following remediation across Phase 1, Phase 2, and the foundational hardening steps (canonical path key management, sub-service encapsulation, zero-rate amortization guard, and default-deny containment), all foundational code-level defects have been resolved. The test suite now passes **129 tests across 8 test suites** with zero compiler or linter errors.
 
-This document tracks the **remaining active findings and architectural tasks** required to achieve full production readiness.
+This document tracks the **sole remaining active architectural task** required to achieve full production readiness: **Phase 3 Tool Consolidation**.
 
 ### Active Status Scorecard
 
 | Persona Lens | Domain | Current Status | Remaining Action Item |
 | :--- | :--- | :---: | :--- |
-| **Role 1: Solution Architect** | System Design & Modularity | ⚠️ PENDING CONSOLIDATION | Execute Phase 3 blueprint: Consolidate 127 granular tools into 26 composite tools ([PHASE3_CONSOLIDATION_PLAN.md](PHASE3_CONSOLIDATION_PLAN.md)). Fix basename key collision. |
-| **Role 2: Senior Software Developer** | Code Quality & Architecture | 🟡 CLEAN (PHASE 3 PENDING) | Clean up Facade encapsulation (retire public sub-service exposures on `ExcelService`). |
-| **Role 3: Senior QA & Test Engineer** | Testing & Verification | 🟢 STABLE (123 TESTS PASSING) | Maintain test coverage as Phase 3 composite tools are introduced. |
-| **Role 4: Financial & Accounting Analyst** | Mathematical Correctness | 🟢 STABLE | Edge-case guard: handle zero-rate loan amortization (`annualRate = 0`). |
-| **Role 5: System Security Specialist** | Access Control & Security | 🟢 HARDENED | Operator configuration: consider fail-closed default for empty `allowedPaths` in production profiles. |
+| **Role 1: Solution Architect** | System Design & Modularity | ⚠️ PENDING CONSOLIDATION | Execute Phase 3 blueprint: Consolidate 127 granular tools into 26 composite tools ([PHASE3_CONSOLIDATION_PLAN.md](PHASE3_CONSOLIDATION_PLAN.md)). |
+| **Role 2: Senior Software Developer** | Code Quality & Architecture | 🟢 CLEAN | Facade encapsulation complete (sub-services private, typed accessors in place). Zero ESLint / TS warnings. |
+| **Role 3: Senior QA & Test Engineer** | Testing & Verification | 🟢 STABLE (129 TESTS PASSING) | Maintain test coverage as Phase 3 composite tools are introduced. |
+| **Role 4: Financial & Accounting Analyst** | Mathematical Correctness | 🟢 STABLE | Zero-rate amortization guard implemented & tested. IRR/NPV/Aging verified. |
+| **Role 5: System Security Specialist** | Access Control & Security | 🟢 HARDENED | Canonical paths, strict path traversal guards, and default-deny containment (`allowedPaths: [process.cwd()]`) active. |
 | **Role 6: Senior Excel & Doc Specialist** | Excel Domain & Docs | 🟡 PENDING DOCS OVERHAUL | Overhaul documentation and tool catalogs once composite tools (Phase 3) are merged. |
 
 ---
@@ -40,42 +40,6 @@ This document tracks the **remaining active findings and architectural tasks** r
   - Expected token reduction: ~75% (~38k down to ~7–9k tokens).
   - Target: Dedicated migration session with backward compatibility or migration guide.
 
-#### Active Finding 1.2: Workbook Map Basename Key Collision (MEDIUM)
-- **File**: [`src/services/excel-workbook-manager.ts`](../src/services/excel-workbook-manager.ts#L255-L258)
-- **Current State**:
-  While source paths are now recorded for default saves, `activeWorkbooks` still indexes workbooks by filename basename (`report.xlsx`). Opening two different files with the same name from separate folders (`/dirA/report.xlsx` and `/dirB/report.xlsx`) causes a key collision in memory.
-- **Action Plan**:
-  Switch `activeWorkbooks` keys to canonical absolute paths, while providing fuzzy basename resolution when unique.
-
-#### Active Finding 1.3: Encapsulation Leak in Facade Pattern (LOW)
-- **Files**: [`src/services/excel-service.ts`](../src/services/excel-service.ts#L29-L32), [`src/tools/tool-handler.ts`](../src/tools/tool-handler.ts#L56-L59)
-- **Current State**:
-  `ExcelService` exposes sub-services as public properties (`public accounting`, `public advancedAccounting`, `public formulaAnalyzer`).
-- **Action Plan**:
-  Make sub-service fields private and route all external interactions through explicit Facade methods or inject domain services directly into handlers during Phase 3 tool rewrite.
-
----
-
-### 📈 Role 4: Financial & Accounting Data Analyst
-
-#### Active Finding 4.1: Edge-Case Guard in Loan Amortization (LOW)
-- **File**: [`src/services/excel-advanced-accounting.ts`](../src/services/excel-advanced-accounting.ts#L238)
-- **Current State**:
-  When `annualRate = 0` (zero-interest loan), the standard amortization formula divides by zero (`(1+r)^n - 1 = 0`), producing `NaN` payment values.
-- **Action Plan**:
-  Add zero-rate branch: if `annualRate === 0`, `payment = principal / numberOfPeriods`, with zero interest allocated across periods.
-
----
-
-### 🛡️ Role 5: System Security Specialist
-
-#### Active Finding 5.1: Operator Profile Default-Deny Configuration (LOW)
-- **File**: [`src/security/permission-checker.ts`](../src/security/permission-checker.ts#L32-L35)
-- **Current State**:
-  When `allowedPaths` is empty `[]`, `PermissionChecker` allows all paths by default (except denied patterns).
-- **Action Plan**:
-  In server configuration profiles (`ServerConfig`), default unconfigured deployments to `process.cwd()` to enforce strict default-deny containment unless explicitly opted out by the operator.
-
 ---
 
 ## Actionable Execution Roadmap (Remaining Work)
@@ -88,8 +52,6 @@ graph TD
         A1["Create Composite Tool Definitions (26 Tools with action enums)"]
         A2["Generate MCP JSON Schemas via zod-to-json-schema"]
         A3["Refactor Handlers to z.infer Typed Dispatchers"]
-        A4["Canonical Path Keys in WorkbookManager"]
-        A5["Zero-Rate Amortization Guard"]
     end
 
     subgraph "Handoff & Migration"
@@ -98,7 +60,7 @@ graph TD
         B3["Update Verification Suites"]
     end
 
-    A1 --> A2 --> A3 --> A4 --> A5 --> B1 --> B2 --> B3
+    A1 --> A2 --> A3 --> B1 --> B2 --> B3
 ```
 
 ---
@@ -108,7 +70,7 @@ graph TD
 Run these commands to verify the current health of the codebase:
 
 ```bash
-# 1. Run all 123 automated tests across 7 test suites
+# 1. Run all 129 automated tests across 8 test suites
 npm test
 
 # 2. Verify ESLint compliance (zero errors)

@@ -58,7 +58,7 @@ const createBook = async (name: string): Promise<string> => {
 };
 
 const sheet = (file: string, name = 'Sheet1'): ExcelJS.Worksheet =>
-  excelService.activeWorkbooks.get(file)!.getWorksheet(name)!;
+  excelService.getActiveWorkbooks().get(file)!.getWorksheet(name)!;
 
 describe('CSV transfer tools', () => {
   it('excel_import_csv writes parsed rows (numbers coerced)', async () => {
@@ -157,7 +157,7 @@ describe('Lookup formula writers', () => {
 describe('Pivot summary tool', () => {
   it('excel_create_pivot_table groups and sums by the row field', async () => {
     const file = await createBook('piv.xlsx');
-    const wb = excelService.activeWorkbooks.get(file)!;
+    const wb = excelService.getActiveWorkbooks().get(file)!;
     const data = wb.addWorksheet('Data');
     data.getCell('A1').value = 'Region'; data.getCell('B1').value = 'Amount';
     data.getCell('A2').value = 'North'; data.getCell('B2').value = 10;

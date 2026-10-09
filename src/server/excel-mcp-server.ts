@@ -69,7 +69,7 @@ export class ExcelMCPServer {
    */
   private mergeConfig(userConfig?: Partial<ServerConfig>): ServerConfig {
     const defaultPermissions: PermissionConfig = {
-      allowedPaths: [], // Empty means all paths allowed (except denied)
+      allowedPaths: [process.cwd()], // Default to process.cwd() for secure default-deny containment
       deniedPaths: [
         '/etc/*',
         '/sys/*',
