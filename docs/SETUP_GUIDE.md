@@ -197,6 +197,7 @@ For more troubleshooting information, see [TROUBLESHOOTING.md](./TROUBLESHOOTING
 
 ## Documentation
 
+- [Antigravity Setup Guide](./ANTIGRAVITY_SETUP.md) - Setup instructions for Google Antigravity
 - [Cline Setup Guide](./CLINE_SETUP.md) - Setup instructions for Cline
 - [GitHub Copilot Setup Guide](./GITHUB_COPILOT_SETUP.md) - Setup instructions for GitHub Copilot
 - [API Documentation](./API.md) - Complete API reference

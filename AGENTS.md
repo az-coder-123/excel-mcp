@@ -145,5 +145,6 @@ See [docs/AI_WORKFLOW.md](docs/AI_WORKFLOW.md) for full guidelines, C-O-C-V prom
 - `docs/TROUBLESHOOTING.md` — Common issues and solutions.
 - `docs/tools/` — Per-category tool documentation with examples.
 - `docs/SETUP_GUIDE.md` — Installation and Cline integration guide.
+- `docs/ANTIGRAVITY_SETUP.md` — Google Antigravity configuration.
 - `docs/GITHUB_COPILOT_SETUP.md` — GitHub Copilot configuration.
 - `docs/CLINE_SETUP.md` — Cline extension configuration.
