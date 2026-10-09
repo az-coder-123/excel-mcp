@@ -13,10 +13,13 @@ import {
   AdvancedDataHandlers,
   AnalysisHandlers,
   CellHandlers,
+  ChartHandlers,
   CommentDataHandlers,
+  ConditionalFormattingHandlers,
   ExtendedFormattingHandlers,
   FormattingHandlers,
   FormulaAnalysisHandlers,
+  ProtectionHandlers,
   SystemHandlers,
   WorkbookHandlers,
   WorksheetHandlers
@@ -39,6 +42,9 @@ export class ToolHandler {
   private advancedAccountingHandlers: AdvancedAccountingHandlers;
   private formulaAnalysisHandlers: FormulaAnalysisHandlers;
   private systemHandlers: SystemHandlers;
+  private chartHandlers: ChartHandlers;
+  private conditionalFormattingHandlers: ConditionalFormattingHandlers;
+  private protectionHandlers: ProtectionHandlers;
 
   constructor(
     excelService: ExcelService,
@@ -59,6 +65,9 @@ export class ToolHandler {
     this.advancedAccountingHandlers = new AdvancedAccountingHandlers(excelService['advancedAccounting']);
     this.formulaAnalysisHandlers = new FormulaAnalysisHandlers(excelService['formulaAnalyzer']);
     this.systemHandlers = new SystemHandlers(excelService, permissionChecker, logger);
+    this.chartHandlers = new ChartHandlers(excelService);
+    this.conditionalFormattingHandlers = new ConditionalFormattingHandlers(excelService);
+    this.protectionHandlers = new ProtectionHandlers(excelService);
   }
 
   /**
@@ -379,6 +388,68 @@ export class ToolHandler {
             args as { filename: string; worksheet: string }
           );
         case 'excel_check_circular_references':
+          return await this.formulaAnalysisHandlers.handleCheckCircular(
+            args as { filename: string; worksheet: string }
+          );
+
+        // Gradient fill (previously-undispatched)
+        case 'excel_set_gradient_fill':
+          return await this.formattingHandlers.handleSetGradientFill(args);
+
+        // Chart operations (previously-undispatched)
+        case 'excel_add_chart':
+          return await this.chartHandlers.handleAddChart(args);
+        case 'excel_update_chart':
+          return await this.chartHandlers.handleUpdateChart(args);
+        case 'excel_delete_chart':
+          return await this.chartHandlers.handleDeleteChart(args);
+        case 'excel_list_charts':
+          return await this.chartHandlers.handleListCharts(args);
+
+        // Conditional formatting operations (previously-undispatched)
+        case 'excel_add_conditional_format':
+          return await this.conditionalFormattingHandlers.handleAddConditionalFormat(args);
+        case 'excel_remove_conditional_format':
+          return await this.conditionalFormattingHandlers.handleRemoveConditionalFormat(args);
+        case 'excel_add_data_bar':
+          return await this.conditionalFormattingHandlers.handleAddDataBar(args);
+        case 'excel_add_color_scale':
+          return await this.conditionalFormattingHandlers.handleAddColorScale(args);
+        case 'excel_add_icon_set':
+          return await this.conditionalFormattingHandlers.handleAddIconSet(args);
+
+        // Protection operations (previously-undispatched)
+        case 'excel_protect_worksheet':
+          return await this.protectionHandlers.handleProtectWorksheet(args);
+        case 'excel_unprotect_worksheet':
+          return await this.protectionHandlers.handleUnprotectWorksheet(args);
+        case 'excel_protect_cells':
+          return await this.protectionHandlers.handleProtectCells(args);
+        case 'excel_protect_workbook':
+          return await this.protectionHandlers.handleProtectWorkbook(args);
+        case 'excel_unprotect_workbook':
+          return await this.protectionHandlers.handleUnprotectWorkbook(args);
+
+        // Data utility operations (previously-undispatched)
+        case 'excel_import_csv':
+          return await this.advancedDataHandlers.handleImportCsv(args);
+        case 'excel_export_csv':
+          return await this.advancedDataHandlers.handleExportCsv(args);
+        case 'excel_remove_duplicates':
+          return await this.advancedDataHandlers.handleRemoveDuplicates(args);
+        case 'excel_text_to_columns':
+          return await this.advancedDataHandlers.handleTextToColumns(args);
+        case 'excel_flash_fill':
+          return await this.advancedDataHandlers.handleFlashFill(args);
+        case 'excel_vlookup':
+          return await this.advancedDataHandlers.handleVlookup(args);
+        case 'excel_index_match':
+          return await this.advancedDataHandlers.handleIndexMatch(args);
+        case 'excel_create_pivot_table':
+          return await this.advancedDataHandlers.handleCreatePivotTable(args);
+
+        // Circular reference check alias (previously-undispatched duplicate definition)
+        case 'excel_check_circular':
           return await this.formulaAnalysisHandlers.handleCheckCircular(
             args as { filename: string; worksheet: string }
           );

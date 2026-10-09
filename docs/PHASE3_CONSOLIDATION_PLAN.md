@@ -1,6 +1,11 @@
 # Phase 3 (C1) — Tool Consolidation Blueprint: 127 → 26 Composite Tools
 
 > **Status**: Blueprint approved for execution — requires a dedicated session.
+> **Update (post-wiring)**: the 24 previously-undispatched tools (charts, conditional
+> formatting, protection, CSV, lookups, pivot, flash-fill, text-to-columns,
+> remove-duplicates, gradient) are now **fully implemented and dispatched**
+> (127/127 defined tools live, covered by `tests/dead-tools-wiring.test.ts`).
+> The composite mapping below absorbs them as noted — nothing is dropped.
 > **Why dedicated**: C1 is a **breaking change** for every MCP client (all 127 tool
 > names disappear) and mandates a full `docs/` + `README.md` overhaul in the same
 > release. Executing it piecemeal would leave a hybrid API that is worse than either
