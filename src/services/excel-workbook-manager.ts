@@ -332,8 +332,6 @@ export class ExcelWorkbookManager {
       this.activeWorkbooks.has(key) &&
       this.sourcePaths.get(key) !== sourcePath
     ) {
-      // Same basename opened from a different directory overwrites the earlier
-      // entry (known limitation tracked for the Phase 3 tool-layer rewrite).
       this.logger.warn(
         `Workbook key collision: "${key}" already open from "${this.sourcePaths.get(key)}", replacing with "${sourcePath}"`
       );
