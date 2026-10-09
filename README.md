@@ -60,6 +60,7 @@ MCP_MAX_FILE_SIZE=52428800
 
 This server works seamlessly with MCP-compatible tools in VS Code. See the dedicated setup guides for detailed configuration instructions:
 
+- **[Google Antigravity Setup](docs/ANTIGRAVITY_SETUP.md)** — Configuration for Google Antigravity IDE and `agy` CLI.
 - **[GitHub Copilot Setup](docs/GITHUB_COPILOT_SETUP.md)** — Configuration for GitHub Copilot Chat in VS Code.
 - **[Cline Setup](docs/CLINE_SETUP.md)** — Configuration for the Cline extension in VS Code.
 
