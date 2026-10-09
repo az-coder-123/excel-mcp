@@ -8,6 +8,7 @@ import { OperationResult } from '../../types/index.js';
 import { ExcelService } from '../../services/excel-service.js';
 import * as os from 'os';
 import * as path from 'path';
+import * as fs from 'fs';
 
 export class SystemHandlers extends BaseHandler {
   private permissionChecker?: any;
@@ -117,8 +118,8 @@ export class SystemHandlers extends BaseHandler {
     try {
       const checkDir = this.getFilesystemCheckDir();
       const testFile = `${checkDir}/.excel-mcp-health-check-${Date.now()}`;
-      require('fs').writeFileSync(testFile, 'test');
-      require('fs').unlinkSync(testFile);
+      fs.writeFileSync(testFile, 'test');
+      fs.unlinkSync(testFile);
       dependencies.filesystem = 'ok';
     } catch (error) {
       this.logger.warn('Filesystem dependency check failed', { error: error instanceof Error ? error.message : String(error), checkDir: this.getFilesystemCheckDir() });

@@ -254,10 +254,11 @@ export class AnalysisHandlers {
           case 'sum':
             result = values.reduce((sum: number, v) => sum + (Number(v) || 0), 0);
             break;
-          case 'avg':
+          case 'avg': {
             const sum = values.reduce((s: number, v) => s + (Number(v) || 0), 0);
             result = sum / values.length;
             break;
+          }
           case 'max':
             result = Math.max(...values.map(v => Number(v) || 0));
             break;
@@ -347,7 +348,7 @@ export class AnalysisHandlers {
 
         // Detect patterns
         const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        const phonePattern = /^[\d\s\-\+\(\)]+$/;
+        const phonePattern = /^[\d\s()+-]+$/;
         const datePattern = /^\d{4}-\d{2}-\d{2}$|^\d{2}\/\d{2}\/\d{4}$/;
 
         const emails = values.filter(v => emailPattern.test(v)).length;

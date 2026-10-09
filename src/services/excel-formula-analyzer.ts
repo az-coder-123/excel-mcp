@@ -348,7 +348,7 @@ export class ExcelFormulaAnalyzer {
   }
 
   private extractFunctions(formula: string): string[] {
-    const functionPattern = /[A-Z][A-Z0-9\.]*/g;
+    const functionPattern = /[A-Z][A-Z0-9.]*/g;
     const matches = formula.match(functionPattern) || [];
     
     // Remove Excel keywords and operators
