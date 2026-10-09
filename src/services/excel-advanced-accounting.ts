@@ -108,25 +108,60 @@ export class ExcelAdvancedAccounting {
         }
       }
 
-      // Calculate IRR using Newton-Raphson method
+      // Validate cash flows before solving (audit Finding 4.1)
+      if (values.length < 2) {
+        return { success: false, error: 'IRR requires at least two cash flow values' };
+      }
+      const hasNegative = values.some((v) => v < 0);
+      const hasPositive = values.some((v) => v > 0);
+      if (!hasNegative || !hasPositive) {
+        return {
+          success: false,
+          error: 'IRR requires at least one negative and one positive cash flow',
+        };
+      }
+
+      // Standard IRR with Excel semantics: solve NPV(r) = Σ_{t=0}^{n-1} v_t / (1+r)^t = 0
+      // via Newton-Raphson using the mathematically correct derivative:
+      //   NPV'(r) = Σ_{t=0}^{n-1} -t · v_t / (1+r)^(t+1)
       let rate = guess;
+      let converged = false;
       const maxIterations = 100;
-      const tolerance = 0.00001;
+      const tolerance = 1e-10;
 
       for (let i = 0; i < maxIterations; i++) {
         let npv = 0;
         let dnpv = 0;
 
-        for (let j = 0; j < values.length; j++) {
-          npv += values[j] / Math.pow(1 + rate, j + 1);
-          dnpv -= j * values[j] / Math.pow(1 + rate, j + 1);
+        for (let t = 0; t < values.length; t++) {
+          npv += values[t] / Math.pow(1 + rate, t);
+          dnpv -= (t * values[t]) / Math.pow(1 + rate, t + 1);
         }
 
         if (Math.abs(npv) < tolerance) {
+          converged = true;
           break;
         }
 
-        rate = rate - npv / dnpv;
+        // Guard against a flat derivative (division by zero → NaN/Infinity)
+        if (!Number.isFinite(dnpv) || Math.abs(dnpv) < 1e-12) {
+          break;
+        }
+
+        const nextRate = rate - npv / dnpv;
+        if (!Number.isFinite(nextRate)) {
+          break;
+        }
+        // Keep the rate economically valid (r > -100%)
+        rate = Math.max(nextRate, -0.999999);
+      }
+
+      if (!converged) {
+        this.logger.warn(`IRR calculation did not converge for ${filename}!${worksheetName}`);
+        return {
+          success: false,
+          error: 'IRR calculation did not converge; try a different guess value',
+        };
       }
 
       const irr = rate * 100; // Convert to percentage
@@ -305,8 +340,13 @@ export class ExcelAdvancedAccounting {
         return { success: false, error: 'No data found' };
       }
 
-      const dateColIndex = this.getColumnIndex(`${invoiceDateColumn}1`, invoiceDateColumn);
-      const amountColIndex = this.getColumnIndex(`${amountColumn}1`, amountColumn);
+      // Fix: compute both indexes relative to the SAME range start so each
+      // column maps to its own slot. The previous code passed each column as
+      // its own range start, making getColumnIndex always return 0 and causing
+      // amounts to be read from the DATE column (caught by aging tests).
+      const rangeStartCell = `${invoiceDateColumn}1`;
+      const dateColIndex = this.getColumnIndex(rangeStartCell, invoiceDateColumn);
+      const amountColIndex = this.getColumnIndex(rangeStartCell, amountColumn);
 
       const agingBuckets: { [key: string]: number } = {
         '0-30': 0,
@@ -320,11 +360,13 @@ export class ExcelAdvancedAccounting {
         const dateValue = row[dateColIndex];
         const amount = typeof row[amountColIndex] === 'number' ? row[amountColIndex] as number : 0;
 
-        if (!(dateValue instanceof Date)) {
-          continue;
+        // Support Date objects, raw Excel serial numbers, and date strings (audit Finding 4.2)
+        const invoiceDate = this.toDate(dateValue);
+        if (!invoiceDate) {
+          continue; // Skip headers, blanks, and values that are not dates
         }
 
-        const daysPastDue = Math.floor((asOfDate.getTime() - dateValue.getTime()) / (1000 * 60 * 60 * 24));
+        const daysPastDue = Math.floor((asOfDate.getTime() - invoiceDate.getTime()) / (1000 * 60 * 60 * 24));
 
         if (daysPastDue <= 30) {
           agingBuckets['0-30'] += amount;
@@ -492,6 +534,35 @@ export class ExcelAdvancedAccounting {
 
   private getColumnIndex(rangeStart: string, columnLetter: string): number {
     return this.columnToNumber(columnLetter) - this.columnToNumber(rangeStart.match(/^([A-Z]+)/)![1]);
+  }
+
+  /**
+   * Convert a cell value to a Date, supporting JavaScript Date objects,
+   * raw Excel serial numbers (days since 1899-12-30), and parseable date strings.
+   * Returns null when the value cannot be interpreted as a date.
+   *
+   * Serial numbers below 61 are rejected: Excel's Lotus-1900 compatibility bug
+   * (phantom Feb 29, 1900) makes serials 1–60 ambiguous, and real-world invoice
+   * dates always postdate 1900-03-01 anyway.
+   */
+  private toDate(value: string | number | boolean | Date | null): Date | null {
+    if (value instanceof Date) {
+      return Number.isNaN(value.getTime()) ? null : value;
+    }
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      // Excel serial dates: valid range 61 (1900-03-01) .. 2958465 (9999-12-31)
+      if (value < 61 || value > 2958465) {
+        return null;
+      }
+      const MS_PER_DAY = 86_400_000;
+      const EXCEL_EPOCH_MS = Date.UTC(1899, 11, 30);
+      return new Date(EXCEL_EPOCH_MS + Math.round(value * MS_PER_DAY));
+    }
+    if (typeof value === 'string' && value.trim() !== '') {
+      const parsed = new Date(value);
+      return Number.isNaN(parsed.getTime()) ? null : parsed;
+    }
+    return null;
   }
 
   private columnToNumber(column: string): number {
