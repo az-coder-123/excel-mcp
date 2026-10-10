@@ -4,7 +4,7 @@
  */
 
 import { ExcelAdvancedAccounting } from '../../services/excel-advanced-accounting.js';
-import { OperationResult } from '../../types/index.js';
+import { DepreciationMethod, OperationResult, TaxBracket } from '../../types/index.js';
 
 type ToolHandler = (args: Record<string, unknown>) => Promise<OperationResult>;
 type RatioType = 'current' | 'quick' | 'debt-to-equity' | 'return-on-equity' | 'profit-margin';
@@ -139,6 +139,69 @@ export class AdvancedAccountingHandlers {
       strArg(args, 'amountRange'),
       reqNum(args, 'exchangeRate'),
       strArg(args, 'outputRange')
+    );
+    return result;
+  };
+
+  /**
+   * Calculate Depreciation (Straight-Line, Double-Declining, Sum-of-Years'-Digits)
+   */
+  calculateDepreciation: ToolHandler = async (args: Record<string, unknown>) => {
+    const result = await this.advancedAccounting.calculateDepreciation(
+      strArg(args, 'filename'),
+      strArg(args, 'worksheet'),
+      strArg(args, 'startCell'),
+      reqNum(args, 'cost'),
+      reqNum(args, 'salvageValue'),
+      reqNum(args, 'usefulLife'),
+      strArg(args, 'method') as DepreciationMethod
+    );
+    return result;
+  };
+
+  /**
+   * Calculate Progressive Tax
+   */
+  calculateProgressiveTax: ToolHandler = async (args: Record<string, unknown>) => {
+    const brackets = args['brackets'];
+    if (!Array.isArray(brackets)) {
+      return {
+        success: false,
+        error: 'Missing or invalid required parameter: brackets (must be an array)',
+      };
+    }
+
+    // Validate bracket structure
+    for (const bracket of brackets) {
+      if (typeof bracket !== 'object' || bracket === null) {
+        return { success: false, error: 'Each bracket must be an object with threshold and rate' };
+      }
+      const b = bracket as Record<string, unknown>;
+      if (typeof b['threshold'] !== 'number' || typeof b['rate'] !== 'number') {
+        return { success: false, error: 'Each bracket must have numeric threshold and rate' };
+      }
+    }
+
+    const result = await this.advancedAccounting.calculateProgressiveTax(
+      strArg(args, 'filename'),
+      strArg(args, 'worksheet'),
+      strArg(args, 'amountRange'),
+      brackets as TaxBracket[],
+      strArg(args, 'outputRange')
+    );
+    return result;
+  };
+
+  /**
+   * Calculate XIRR (IRR for irregular cash flows)
+   */
+  calculateXIRR: ToolHandler = async (args: Record<string, unknown>) => {
+    const result = await this.advancedAccounting.calculateXIRR(
+      strArg(args, 'filename'),
+      strArg(args, 'worksheet'),
+      strArg(args, 'dateRange'),
+      strArg(args, 'valuesRange'),
+      optNum(args, 'guess')
     );
     return result;
   };

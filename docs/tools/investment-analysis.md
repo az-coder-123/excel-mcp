@@ -24,6 +24,23 @@ Calculate Internal Rate of Return (IRR) — the discount rate that makes NPV equ
 | `valuesRange` | ✅ | Cash flow values range |
 | `guess` | ❌ | Initial guess for the rate |
 
+## `excel_calculate_xirr`
+
+Calculate Internal Rate of Return for irregular or non-periodic cash flows (XIRR). Unlike standard periodic IRR which assumes equidistant intervals, XIRR factors in exact transaction dates using day-fraction discounting ($d_i - d_0)/365$.
+
+| Parameter | Required | Description |
+|-----------|----------|-------------|
+| `filename` | ✅ | Name of the opened workbook |
+| `worksheet` | ✅ | Name of the worksheet |
+| `dateRange` | ✅ | Range containing transaction dates (e.g., `A2:A6`) |
+| `valuesRange` | ✅ | Range containing cash flow values (e.g., `B2:B6`) |
+| `guess` | ❌ | Initial discount rate guess (default: `0.1` for 10%) |
+
+**Requirements:**
+- Cash flows must contain at least one positive and at least one negative amount.
+- `dateRange` and `valuesRange` must have identical row dimensions.
+- Returns annualized rate in percentage (e.g., `14.25` for 14.25%).
+
 ## `excel_calculate_financial_ratio`
 
 Calculate key financial ratios.

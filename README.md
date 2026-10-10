@@ -148,11 +148,14 @@ For detailed parameter references, see the [Tools Reference](docs/tools/README.m
 | `excel_find_anomalies` | Financial Analysis | [→](docs/tools/financial-analysis.md) |
 | `excel_calculate_npv` | Investment Analysis | [→](docs/tools/investment-analysis.md) |
 | `excel_calculate_irr` | Investment Analysis | [→](docs/tools/investment-analysis.md) |
+| `excel_calculate_xirr` | Investment Analysis | [→](docs/tools/investment-analysis.md) |
 | `excel_calculate_financial_ratio` | Investment Analysis | [→](docs/tools/investment-analysis.md) |
 | `excel_create_amortization_schedule` | Loan & Debt | [→](docs/tools/loan-and-debt.md) |
 | `excel_create_aging_report` | Loan & Debt | [→](docs/tools/loan-and-debt.md) |
 | `excel_calculate_tax` | Tax & Currency | [→](docs/tools/tax-and-currency.md) |
+| `excel_calculate_progressive_tax` | Tax & Currency | [→](docs/tools/tax-and-currency.md) |
 | `excel_convert_currency` | Tax & Currency | [→](docs/tools/tax-and-currency.md) |
+| `excel_calculate_depreciation` | Asset Depreciation | [→](docs/tools/depreciation.md) |
 
 ### Usage Examples & Reference
 

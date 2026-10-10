@@ -6,7 +6,13 @@
 import ExcelJS from 'exceljs';
 import { PermissionChecker } from '../security/permission-checker.js';
 import { Logger } from '../utils/logger.js';
-import { OperationResult } from '../types/index.js';
+import {
+  DepreciationMethod,
+  DepreciationScheduleItem,
+  OperationResult,
+  ProgressiveTaxDetail,
+  TaxBracket
+} from '../types/index.js';
 import { columnLetterToNumber, numberToColumn } from '../utils/excel-coords.js';
 
 export class ExcelAdvancedAccounting {
@@ -123,8 +129,11 @@ export class ExcelAdvancedAccounting {
       }
 
       // Standard IRR with Excel semantics: solve NPV(r) = Σ_{t=0}^{n-1} v_t / (1+r)^t = 0
-      // via Newton-Raphson using the mathematically correct derivative:
-      //   NPV'(r) = Σ_{t=0}^{n-1} -t · v_t / (1+r)^(t+1)
+      // Normalize cash flows by max absolute value to ensure numerical stability regardless
+      // of currency scale (e.g., VND billions vs. small fractions)
+      const scale = Math.max(...values.map((v) => Math.abs(v))) || 1;
+      const normalizedValues = values.map((v) => v / scale);
+
       let rate = guess;
       let converged = false;
       const maxIterations = 100;
@@ -134,9 +143,9 @@ export class ExcelAdvancedAccounting {
         let npv = 0;
         let dnpv = 0;
 
-        for (let t = 0; t < values.length; t++) {
-          npv += values[t] / Math.pow(1 + rate, t);
-          dnpv -= (t * values[t]) / Math.pow(1 + rate, t + 1);
+        for (let t = 0; t < normalizedValues.length; t++) {
+          npv += normalizedValues[t] / Math.pow(1 + rate, t);
+          dnpv -= (t * normalizedValues[t]) / Math.pow(1 + rate, t + 1);
         }
 
         if (Math.abs(npv) < tolerance) {
@@ -506,6 +515,369 @@ export class ExcelAdvancedAccounting {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       this.logger.error(`Failed to convert currency: ${errorMessage}`);
+      return { success: false, error: errorMessage };
+    }
+  }
+
+  // ============================================
+  // Depreciation, Progressive Tax, XIRR
+  // ============================================
+
+  /**
+   * Calculate asset depreciation using Straight-Line, Double-Declining Balance,
+   * or Sum-of-Years'-Digits methods.
+   *
+   * Writes a depreciation schedule starting at `startCell`:
+   *   Year | Depreciation | Accumulated | Book Value
+   */
+  async calculateDepreciation(
+    filename: string,
+    worksheetName: string,
+    startCell: string,
+    cost: number,
+    salvageValue: number,
+    usefulLife: number,
+    method: DepreciationMethod
+  ): Promise<OperationResult<{ schedule: DepreciationScheduleItem[] }>> {
+    try {
+      const workbook = this.activeWorkbooks.get(filename);
+      if (!workbook) {
+        return { success: false, error: `Workbook "${filename}" not found` };
+      }
+
+      const worksheet = workbook.getWorksheet(worksheetName);
+      if (!worksheet) {
+        return { success: false, error: `Worksheet "${worksheetName}" not found` };
+      }
+
+      if (cost <= 0) {
+        return { success: false, error: 'Cost must be greater than zero' };
+      }
+      if (salvageValue < 0) {
+        return { success: false, error: 'Salvage value cannot be negative' };
+      }
+      if (salvageValue >= cost) {
+        return { success: false, error: 'Salvage value must be less than cost' };
+      }
+      if (usefulLife <= 0 || !Number.isInteger(usefulLife)) {
+        return { success: false, error: 'Useful life must be a positive integer' };
+      }
+
+      const startCol = startCell.match(/^([A-Z]+)/)![1];
+      const startRow = parseInt(startCell.match(/\d+/)![0], 10);
+      const depreciableBase = cost - salvageValue;
+
+      // Write headers
+      const headers = ['Year', 'Depreciation', 'Accumulated', 'Book Value'];
+      for (let h = 0; h < headers.length; h++) {
+        const cell = worksheet.getCell(`${this.numberToColumn(this.columnToNumber(startCol) + h)}${startRow}`);
+        cell.value = headers[h];
+        cell.font = { bold: true };
+      }
+
+      const schedule: { year: number; depreciation: number; accumulated: number; bookValue: number }[] = [];
+      let accumulated = 0;
+      let bookValue = cost;
+
+      // SYD denominator: n*(n+1)/2
+      const sydDenominator = (usefulLife * (usefulLife + 1)) / 2;
+
+      for (let year = 1; year <= usefulLife; year++) {
+        let depreciation: number;
+
+        switch (method) {
+          case 'straight-line':
+            depreciation = depreciableBase / usefulLife;
+            break;
+          case 'double-declining': {
+            const ddbRate = 2 / usefulLife;
+            depreciation = bookValue * ddbRate;
+            // Ensure book value does not fall below salvage value
+            if (bookValue - depreciation < salvageValue) {
+              depreciation = bookValue - salvageValue;
+            }
+            break;
+          }
+          case 'sum-of-years-digits': {
+            const remainingLife = usefulLife - year + 1;
+            depreciation = depreciableBase * (remainingLife / sydDenominator);
+            break;
+          }
+        }
+
+        // Guard against rounding producing negative depreciation
+        depreciation = Math.max(0, depreciation);
+        accumulated += depreciation;
+        bookValue = cost - accumulated;
+
+        // Ensure book value does not drop below salvage value due to rounding
+        if (bookValue < salvageValue) {
+          const excess = salvageValue - bookValue;
+          depreciation -= excess;
+          accumulated -= excess;
+          bookValue = salvageValue;
+        }
+
+        schedule.push({ year, depreciation, accumulated, bookValue });
+
+        const row = startRow + year;
+        worksheet.getCell(`${startCol}${row}`).value = year;
+        worksheet.getCell(`${this.numberToColumn(this.columnToNumber(startCol) + 1)}${row}`).value = depreciation;
+        worksheet.getCell(`${this.numberToColumn(this.columnToNumber(startCol) + 2)}${row}`).value = accumulated;
+        worksheet.getCell(`${this.numberToColumn(this.columnToNumber(startCol) + 3)}${row}`).value = bookValue;
+
+        // Format currency columns
+        for (let j = 1; j <= 3; j++) {
+          worksheet.getCell(`${this.numberToColumn(this.columnToNumber(startCol) + j)}${row}`).numFmt = '#,##0.00';
+        }
+      }
+
+      this.logger.info(`Created ${method} depreciation schedule for ${filename}!${worksheetName}`);
+      return { success: true, data: { schedule } };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      this.logger.error(`Failed to calculate depreciation: ${errorMessage}`);
+      return { success: false, error: errorMessage };
+    }
+  }
+
+  /**
+   * Calculate progressive (graduated) tax based on tax brackets.
+   *
+   * Each bracket: { threshold: number; rate: number }
+   * Brackets must be sorted ascending by threshold.
+   * Rate is in percentage (e.g., 5 means 5%).
+   *
+   * Reads amounts from `amountRange`, writes tax to `outputRange`.
+   */
+  async calculateProgressiveTax(
+    filename: string,
+    worksheetName: string,
+    amountRange: string,
+    brackets: TaxBracket[],
+    outputRange: string
+  ): Promise<OperationResult<{ totalTax: number; details: ProgressiveTaxDetail[] }>> {
+    try {
+      const workbook = this.activeWorkbooks.get(filename);
+      if (!workbook) {
+        return { success: false, error: `Workbook "${filename}" not found` };
+      }
+
+      const worksheet = workbook.getWorksheet(worksheetName);
+      if (!worksheet) {
+        return { success: false, error: `Worksheet "${worksheetName}" not found` };
+      }
+
+      if (!brackets || brackets.length === 0) {
+        return { success: false, error: 'At least one tax bracket is required' };
+      }
+
+      // Validate brackets are sorted ascending
+      for (let i = 1; i < brackets.length; i++) {
+        if (brackets[i].threshold <= brackets[i - 1].threshold) {
+          return { success: false, error: 'Tax brackets must be sorted in ascending order by threshold' };
+        }
+      }
+
+      // Validate rates are non-negative
+      for (const bracket of brackets) {
+        if (bracket.rate < 0) {
+          return { success: false, error: 'Tax rates cannot be negative' };
+        }
+      }
+
+      const data = this.getRangeData(
+        worksheet,
+        amountRange.match(/^([A-Z]+\d+):([A-Z]+\d+)$/)![1],
+        amountRange.match(/^([A-Z]+\d+):([A-Z]+\d+)$/)![2]
+      );
+      if (!data || data.length === 0) {
+        return { success: false, error: 'No data found in range' };
+      }
+
+      const colIndex = this.getColumnIndex(
+        amountRange.match(/^([A-Z]+\d+)/)![1],
+        amountRange.match(/^([A-Z]+\d+)/)![1].match(/^([A-Z]+)/)![1]
+      );
+      const outputCol = outputRange.match(/^([A-Z]+)/)![1];
+      const outputStartRow = parseInt(outputRange.match(/\d+/)![0], 10);
+
+      const details: { amount: number; tax: number }[] = [];
+      let totalTax = 0;
+
+      for (let i = 0; i < data.length; i++) {
+        const row = data[i];
+        const amount = typeof row[colIndex] === 'number' ? (row[colIndex] as number) : 0;
+
+        // Calculate tax using progressive brackets
+        let tax = 0;
+        let remainingAmount = amount;
+
+        for (let b = brackets.length - 1; b >= 0; b--) {
+          const threshold = brackets[b].threshold;
+          const rate = brackets[b].rate / 100;
+          if (remainingAmount > threshold) {
+            tax += (remainingAmount - threshold) * rate;
+            remainingAmount = threshold;
+          }
+        }
+        // Amount below the first bracket threshold is taxed at 0% (implicit)
+
+        details.push({ amount, tax });
+        totalTax += tax;
+
+        const cell = worksheet.getCell(`${outputCol}${outputStartRow + i}`);
+        cell.value = tax;
+        cell.numFmt = '#,##0.00';
+      }
+
+      this.logger.info(`Calculated progressive tax for ${filename}!${worksheetName}`);
+      return { success: true, data: { totalTax, details } };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      this.logger.error(`Failed to calculate progressive tax: ${errorMessage}`);
+      return { success: false, error: errorMessage };
+    }
+  }
+
+  /**
+   * Calculate XIRR — IRR for irregular (non-periodic) cash flows.
+   *
+   * Reads dates from `dateRange` and values from `valuesRange`.
+   * Uses Newton-Raphson to solve XNPV(r) = Σ C_i / (1+r)^((d_i - d_0)/365) = 0
+   */
+  async calculateXIRR(
+    filename: string,
+    worksheetName: string,
+    dateRange: string,
+    valuesRange: string,
+    guess: number = 0.1
+  ): Promise<OperationResult<{ xirr: number }>> {
+    try {
+      const workbook = this.activeWorkbooks.get(filename);
+      if (!workbook) {
+        return { success: false, error: `Workbook "${filename}" not found` };
+      }
+
+      const worksheet = workbook.getWorksheet(worksheetName);
+      if (!worksheet) {
+        return { success: false, error: `Worksheet "${worksheetName}" not found` };
+      }
+
+      // Parse dates
+      const dateData = this.getRangeData(
+        worksheet,
+        dateRange.match(/^([A-Z]+\d+):([A-Z]+\d+)$/)![1],
+        dateRange.match(/^([A-Z]+\d+):([A-Z]+\d+)$/)![2]
+      );
+      // Parse values
+      const valueData = this.getRangeData(
+        worksheet,
+        valuesRange.match(/^([A-Z]+\d+):([A-Z]+\d+)$/)![1],
+        valuesRange.match(/^([A-Z]+\d+):([A-Z]+\d+)$/)![2]
+      );
+
+      if (!dateData || !valueData || dateData.length === 0 || valueData.length === 0) {
+        return { success: false, error: 'No data found in ranges' };
+      }
+      if (dateData.length !== valueData.length) {
+        return { success: false, error: 'Date range and value range must have the same number of rows' };
+      }
+
+      const dateColIndex = this.getColumnIndex(
+        dateRange.match(/^([A-Z]+\d+)/)![1],
+        dateRange.match(/^([A-Z]+\d+)/)![1].match(/^([A-Z]+)/)![1]
+      );
+      const valColIndex = this.getColumnIndex(
+        valuesRange.match(/^([A-Z]+\d+)/)![1],
+        valuesRange.match(/^([A-Z]+\d+)/)![1].match(/^([A-Z]+)/)![1]
+      );
+
+      // Build (date, value) pairs
+      const pairs: { date: Date; value: number }[] = [];
+      for (let i = 0; i < dateData.length; i++) {
+        const dateVal = this.toDate(dateData[i][dateColIndex]);
+        const numVal = valueData[i][valColIndex];
+        if (!dateVal || typeof numVal !== 'number') {
+          continue; // Skip non-parseable rows
+        }
+        pairs.push({ date: dateVal, value: numVal });
+      }
+
+      if (pairs.length < 2) {
+        return { success: false, error: 'XIRR requires at least two valid (date, value) pairs' };
+      }
+
+      const hasNegative = pairs.some(p => p.value < 0);
+      const hasPositive = pairs.some(p => p.value > 0);
+      if (!hasNegative || !hasPositive) {
+        return {
+          success: false,
+          error: 'XIRR requires at least one negative and one positive cash flow',
+        };
+      }
+
+      // Sort by date ascending
+      pairs.sort((a, b) => a.date.getTime() - b.date.getTime());
+      const d0 = pairs[0].date.getTime();
+      const MS_PER_DAY = 86_400_000;
+
+      // Normalize values for numerical stability
+      const scale = Math.max(...pairs.map(p => Math.abs(p.value))) || 1;
+      const normalizedValues = pairs.map(p => p.value / scale);
+      const dayFractions = pairs.map(p => (p.date.getTime() - d0) / (MS_PER_DAY * 365));
+
+      // Newton-Raphson iteration
+      let rate = guess;
+      let converged = false;
+      const maxIterations = 200;
+      const tolerance = 1e-10;
+
+      for (let iter = 0; iter < maxIterations; iter++) {
+        let xnpv = 0;
+        let dxnpv = 0;
+
+        for (let i = 0; i < normalizedValues.length; i++) {
+          const t = dayFractions[i];
+          const discount = Math.pow(1 + rate, t);
+          if (!Number.isFinite(discount) || discount === 0) {
+            break;
+          }
+          xnpv += normalizedValues[i] / discount;
+          dxnpv -= (t * normalizedValues[i]) / (discount * (1 + rate));
+        }
+
+        if (Math.abs(xnpv) < tolerance) {
+          converged = true;
+          break;
+        }
+
+        if (!Number.isFinite(dxnpv) || Math.abs(dxnpv) < 1e-12) {
+          break;
+        }
+
+        const nextRate = rate - xnpv / dxnpv;
+        if (!Number.isFinite(nextRate)) {
+          break;
+        }
+        rate = Math.max(nextRate, -0.999999);
+      }
+
+      if (!converged) {
+        this.logger.warn(`XIRR calculation did not converge for ${filename}!${worksheetName}`);
+        return {
+          success: false,
+          error: 'XIRR calculation did not converge; try a different guess value',
+        };
+      }
+
+      const xirr = rate * 100; // Convert to percentage
+
+      this.logger.info(`Calculated XIRR for ${filename}!${worksheetName}: ${xirr}%`);
+      return { success: true, data: { xirr } };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      this.logger.error(`Failed to calculate XIRR: ${errorMessage}`);
       return { success: false, error: errorMessage };
     }
   }

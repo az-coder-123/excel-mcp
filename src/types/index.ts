@@ -105,3 +105,23 @@ export interface ValidationResult {
   valid: boolean;
   errors: string[];
 }
+
+// Advanced Accounting types
+export type DepreciationMethod = 'straight-line' | 'double-declining' | 'sum-of-years-digits';
+
+export interface DepreciationScheduleItem {
+  year: number;
+  depreciation: number;
+  accumulated: number;
+  bookValue: number;
+}
+
+export interface TaxBracket {
+  threshold: number;
+  rate: number;
+}
+
+export interface ProgressiveTaxDetail {
+  amount: number;
+  tax: number;
+}

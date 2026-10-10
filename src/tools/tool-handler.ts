@@ -357,6 +357,12 @@ export class ToolHandler {
           return await this.advancedAccountingHandlers.calculateTax(args);
         case 'excel_convert_currency':
           return await this.advancedAccountingHandlers.convertCurrency(args);
+        case 'excel_calculate_depreciation':
+          return await this.advancedAccountingHandlers.calculateDepreciation(args);
+        case 'excel_calculate_progressive_tax':
+          return await this.advancedAccountingHandlers.calculateProgressiveTax(args);
+        case 'excel_calculate_xirr':
+          return await this.advancedAccountingHandlers.calculateXIRR(args);
 
         // Formula Analysis operations
         case 'excel_list_formulas':

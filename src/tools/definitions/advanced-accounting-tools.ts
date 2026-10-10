@@ -266,4 +266,144 @@ export const ADVANCED_ACCOUNTING_TOOLS: ToolDefinition[] = [
     ],
     requiredPermissions: ['write'],
   },
+  {
+    name: 'excel_calculate_depreciation',
+    description: 'Calculate asset depreciation (SL, DDB, SYD)',
+    parameters: [
+      {
+        name: 'filename',
+        type: 'string',
+        description: 'Workbook name',
+        required: true,
+      },
+      {
+        name: 'worksheet',
+        type: 'string',
+        description: 'Worksheet name',
+        required: true,
+      },
+      {
+        name: 'startCell',
+        type: 'string',
+        description: 'Output start cell',
+        required: true,
+      },
+      {
+        name: 'cost',
+        type: 'number',
+        description: 'Asset cost',
+        required: true,
+      },
+      {
+        name: 'salvageValue',
+        type: 'number',
+        description: 'Salvage/residual value',
+        required: true,
+      },
+      {
+        name: 'usefulLife',
+        type: 'number',
+        description: 'Useful life in years',
+        required: true,
+      },
+      {
+        name: 'method',
+        type: 'string',
+        description: 'Depreciation method',
+        required: true,
+        enum: ['straight-line', 'double-declining', 'sum-of-years-digits'],
+      },
+    ],
+    requiredPermissions: ['write'],
+  },
+  {
+    name: 'excel_calculate_progressive_tax',
+    description: 'Calculate progressive (graduated) tax',
+    parameters: [
+      {
+        name: 'filename',
+        type: 'string',
+        description: 'Workbook name',
+        required: true,
+      },
+      {
+        name: 'worksheet',
+        type: 'string',
+        description: 'Worksheet name',
+        required: true,
+      },
+      {
+        name: 'amountRange',
+        type: 'string',
+        description: 'Taxable income range',
+        required: true,
+      },
+      {
+        name: 'brackets',
+        type: 'array',
+        description: 'Tax brackets [{threshold, rate}]',
+        required: true,
+        items: {
+          name: 'bracket',
+          type: 'object',
+          description: 'Tax bracket',
+          required: true,
+          properties: {
+            threshold: {
+              type: 'number',
+              description: 'Income threshold',
+            },
+            rate: {
+              type: 'number',
+              description: 'Tax rate (%)',
+            },
+          },
+        },
+      },
+      {
+        name: 'outputRange',
+        type: 'string',
+        description: 'Output range',
+        required: true,
+      },
+    ],
+    requiredPermissions: ['write'],
+  },
+  {
+    name: 'excel_calculate_xirr',
+    description: 'Calculate XIRR for irregular cash flows',
+    parameters: [
+      {
+        name: 'filename',
+        type: 'string',
+        description: 'Workbook name',
+        required: true,
+      },
+      {
+        name: 'worksheet',
+        type: 'string',
+        description: 'Worksheet name',
+        required: true,
+      },
+      {
+        name: 'dateRange',
+        type: 'string',
+        description: 'Date range',
+        required: true,
+      },
+      {
+        name: 'valuesRange',
+        type: 'string',
+        description: 'Cash flow values range',
+        required: true,
+      },
+      {
+        name: 'guess',
+        type: 'number',
+        description: 'Initial guess (decimal)',
+        required: false,
+      },
+    ],
+    requiredPermissions: ['read', 'write'],
+  },
 ];

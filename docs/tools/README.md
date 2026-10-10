@@ -20,9 +20,10 @@ Tool documentation organized by functional group. Each file describes the tools 
 | [Financial Calculations](financial-calculations.md) | `excel_financial_sum`, `excel_financial_average`, `excel_running_total`, `excel_percentage_of_total`, `excel_year_to_date` | Sum, average, running total, % of total, YTD |
 | [Accounting Formats](accounting-formats.md) | `excel_accounting_format`, `excel_vnd_currency_format`, `excel_negative_red_format`, `excel_show_zeros_instead_of_empty` | Accounting format, VND, negative in red, show zeros |
 | [Financial Analysis](financial-analysis.md) | `excel_period_comparison`, `excel_variance_analysis`, `excel_check_balance`, `excel_find_anomalies` | Period comparison, variance analysis, balance check, anomaly detection |
-| [Investment Analysis](investment-analysis.md) | `excel_calculate_npv`, `excel_calculate_irr`, `excel_calculate_financial_ratio` | NPV, IRR, financial ratios |
+| [Investment Analysis](investment-analysis.md) | `excel_calculate_npv`, `excel_calculate_irr`, `excel_calculate_xirr`, `excel_calculate_financial_ratio` | NPV, IRR, XIRR, financial ratios |
 | [Loan & Debt](loan-and-debt.md) | `excel_create_amortization_schedule`, `excel_create_aging_report` | Amortization schedule, aging report |
-| [Tax & Currency](tax-and-currency.md) | `excel_calculate_tax`, `excel_convert_currency` | Tax calculation, currency conversion |
+| [Tax & Currency](tax-and-currency.md) | `excel_calculate_tax`, `excel_calculate_progressive_tax`, `excel_convert_currency` | Tax calculation, progressive tax, currency conversion |
+| [Asset Depreciation](depreciation.md) | `excel_calculate_depreciation` | Straight-line, double-declining balance, sum-of-years-digits depreciation |
 
 ## General Reference
 

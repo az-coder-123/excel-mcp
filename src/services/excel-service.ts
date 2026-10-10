@@ -8,7 +8,11 @@ import { PermissionChecker } from '../security/permission-checker.js';
 import {
   CellRange,
   CellValue,
+  DepreciationMethod,
+  DepreciationScheduleItem,
   OperationResult,
+  ProgressiveTaxDetail,
+  TaxBracket,
   WorkbookInfo,
   WorksheetInfo
 } from '../types/index.js';
@@ -581,5 +585,41 @@ export class ExcelService {
 
   public async createPivotTable(filename: string, sourceWorksheet: string, sourceStartCell: string, sourceEndCell: string, targetWorksheet: string, targetCell: string, rowFields?: string[], columnFields?: string[], valueFields?: string[]): Promise<OperationResult<{ rows: number; valueFields: string[] }>> {
     return this.dataUtilities.createPivotTable(filename, sourceWorksheet, sourceStartCell, sourceEndCell, targetWorksheet, targetCell, rowFields, columnFields, valueFields);
+  }
+
+  // ==================================================================
+  // Advanced Accounting Facade Methods
+  // ==================================================================
+
+  public async calculateDepreciation(
+    filename: string,
+    worksheetName: string,
+    startCell: string,
+    cost: number,
+    salvageValue: number,
+    usefulLife: number,
+    method: DepreciationMethod
+  ): Promise<OperationResult<{ schedule: DepreciationScheduleItem[] }>> {
+    return this.advancedAccounting.calculateDepreciation(filename, worksheetName, startCell, cost, salvageValue, usefulLife, method);
+  }
+
+  public async calculateProgressiveTax(
+    filename: string,
+    worksheetName: string,
+    amountRange: string,
+    brackets: TaxBracket[],
+    outputRange: string
+  ): Promise<OperationResult<{ totalTax: number; details: ProgressiveTaxDetail[] }>> {
+    return this.advancedAccounting.calculateProgressiveTax(filename, worksheetName, amountRange, brackets, outputRange);
+  }
+
+  public async calculateXIRR(
+    filename: string,
+    worksheetName: string,
+    dateRange: string,
+    valuesRange: string,
+    guess?: number
+  ): Promise<OperationResult<{ xirr: number }>> {
+    return this.advancedAccounting.calculateXIRR(filename, worksheetName, dateRange, valuesRange, guess);
   }
 }
