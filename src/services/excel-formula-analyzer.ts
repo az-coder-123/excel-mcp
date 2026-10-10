@@ -348,15 +348,14 @@ export class ExcelFormulaAnalyzer {
   }
 
   private extractFunctions(formula: string): string[] {
-    const functionPattern = /[A-Z][A-Z0-9.]*/g;
-    const matches = formula.match(functionPattern) || [];
-    
-    // Remove Excel keywords and operators
-    const keywords = ['IF', 'AND', 'OR', 'NOT', 'TRUE', 'FALSE'];
-    return matches
-      .map(m => m.toUpperCase())
-      .filter(f => !keywords.includes(f))
-      .filter((f, i, arr) => arr.indexOf(f) === i); // Remove duplicates
+    const matches: string[] = [];
+    const regex = /([A-Za-z][A-Za-z0-9._]*)\s*\(/g;
+    let m: RegExpExecArray | null;
+    while ((m = regex.exec(formula)) !== null) {
+      matches.push(m[1].toUpperCase());
+    }
+    const nonFunctions = ['TRUE', 'FALSE'];
+    return [...new Set(matches)].filter(f => !nonFunctions.includes(f));
   }
 
   private extractCellReferences(formula: string): string[] {

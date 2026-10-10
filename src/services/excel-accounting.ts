@@ -7,7 +7,11 @@ import ExcelJS from 'exceljs';
 import { PermissionChecker } from '../security/permission-checker.js';
 import { Logger } from '../utils/logger.js';
 import { OperationResult } from '../types/index.js';
-import { columnLetterToNumber } from '../utils/excel-coords.js';
+import {
+  columnLetterToNumber,
+  parseCellAddress,
+  parseCellRange,
+} from '../utils/excel-coords.js';
 
 export class ExcelAccounting {
   private logger: Logger;
@@ -170,8 +174,12 @@ export class ExcelAccounting {
       }
 
       const valueColIndex = this.getColumnIndex(valueStartCell, valueStartCell.match(/^([A-Z]+)/)![1]);
-      const outputColLetter = outputStartCell.match(/^([A-Z]+)/)![1];
-      const outputStartRow = parseInt(outputStartCell.match(/\d+/)![0], 10);
+      const outAddr = parseCellAddress(outputStartCell);
+      if (!outAddr) {
+        return { success: false, error: `Invalid outputStartCell "${outputStartCell}"` };
+      }
+      const outputColLetter = outAddr.colLetter;
+      const outputStartRow = outAddr.row;
 
       let runningTotal = 0;
 
@@ -220,8 +228,12 @@ export class ExcelAccounting {
       }
 
       const valueColIndex = this.getColumnIndex(valueStartCell, valueStartCell.match(/^([A-Z]+)/)![1]);
-      const outputColLetter = outputStartCell.match(/^([A-Z]+)/)![1];
-      const outputStartRow = parseInt(outputStartCell.match(/\d+/)![0], 10);
+      const outAddr = parseCellAddress(outputStartCell);
+      if (!outAddr) {
+        return { success: false, error: `Invalid outputStartCell "${outputStartCell}"` };
+      }
+      const outputColLetter = outAddr.colLetter;
+      const outputStartRow = outAddr.row;
 
       // Calculate total
       let total = 0;
@@ -274,6 +286,11 @@ export class ExcelAccounting {
         return { success: false, error: `Worksheet "${worksheetName}" not found` };
       }
 
+      const range = parseCellRange(rangeStart, rangeEnd);
+      if (!range) {
+        return { success: false, error: 'Invalid data range' };
+      }
+
       const data = this.getRangeData(worksheet, rangeStart, rangeEnd);
       if (!data || data.length === 0) {
         return { success: false, error: 'No data found in range' };
@@ -281,6 +298,11 @@ export class ExcelAccounting {
 
       const dateColIndex = this.getColumnIndex(rangeStart, dateColumn);
       const valueColIndex = this.getColumnIndex(rangeStart, valueColumn);
+
+      // Determine output column letter and starting row
+      const outAddr = parseCellAddress(outputColumn);
+      const outputColLetter = outAddr ? outAddr.colLetter : (outputColumn.match(/^([A-Za-z]+)/)?.[1]?.toUpperCase() ?? 'A');
+      const outputStartRow = outAddr ? outAddr.row : range.start.row;
 
       let ytdTotal = 0;
       let currentYear = 0;
@@ -290,15 +312,20 @@ export class ExcelAccounting {
         const dateValue = row[dateColIndex];
         const value = typeof row[valueColIndex] === 'number' ? row[valueColIndex] as number : 0;
 
-        // Extract year from date
+        // Extract year from date (Date object, Excel serial number, or date string)
         let year = 0;
         if (dateValue instanceof Date) {
-          year = dateValue.getFullYear();
+          year = Number.isNaN(dateValue.getTime()) ? 0 : dateValue.getFullYear();
         } else if (typeof dateValue === 'number' && dateValue > 0) {
-          // Excel serial date (days since 1/1/1900)
+          // Excel serial date (days since 1899-12-30)
           const excelEpoch = new Date(1899, 11, 30);
           const date = new Date(excelEpoch.getTime() + dateValue * 86400000);
-          year = date.getFullYear();
+          year = Number.isNaN(date.getTime()) ? 0 : date.getFullYear();
+        } else if (typeof dateValue === 'string' && dateValue.trim() !== '') {
+          const parsed = new Date(dateValue);
+          if (!Number.isNaN(parsed.getTime())) {
+            year = parsed.getFullYear();
+          }
         }
 
         // Reset YTD on year change
@@ -309,7 +336,7 @@ export class ExcelAccounting {
 
         ytdTotal += value;
 
-        const cell = worksheet.getCell(`${outputColumn}${i + 1}`);
+        const cell = worksheet.getCell(`${outputColLetter}${outputStartRow + i}`);
         cell.value = ytdTotal;
       }
 
@@ -357,14 +384,15 @@ export class ExcelAccounting {
       const symbol = options.currencySymbol ?? '';
       const showParentheses = options.showNegativeInParentheses ?? true;
       const showRed = options.showNegativeInRed ?? true;
+      const redTag = showRed ? '[Red]' : '';
 
       let formatCode = '';
 
       if (showParentheses) {
-        // Format: (1,234.56) for negative
-        formatCode = `_(${symbol}* #,##0.00_);_(${symbol} \\(#,##0.00\\);_(${symbol}*"-"_);_(@_)`;
+        // Format: (1,234.56) for negative with optional [Red]
+        formatCode = `_(${symbol}* #,##0.00_);${redTag}_(${symbol} \\(#,##0.00\\);_(${symbol}*"-"_);_(@_)`;
       } else {
-        formatCode = `${symbol}#,##0.00;-${symbol}#,##0.00`;
+        formatCode = `${symbol}#,##0.00;${redTag}-${symbol}#,##0.00`;
       }
 
       if (!useSeparator) {
@@ -373,7 +401,6 @@ export class ExcelAccounting {
 
       this.applyFormatToRange(worksheet, startCell, endCell, {
         numFmt: formatCode,
-        font: showRed ? { color: { argb: 'FF000000' } } : undefined
       });
 
       this.logger.info(`Applied accounting format to ${filename}!${worksheetName}`);
@@ -478,13 +505,13 @@ export class ExcelAccounting {
         return { success: false, error: `Worksheet "${worksheetName}" not found` };
       }
 
-      const startRow = parseInt(startCell.match(/\d+/)![0], 10);
-      const endRow = parseInt(endCell.match(/\d+/)![0], 10);
-      const startCol = this.columnToNumber(startCell.match(/^([A-Z]+)/)![1]);
-      const endCol = this.columnToNumber(endCell.match(/^([A-Z]+)/)![1]);
+      const range = parseCellRange(startCell, endCell);
+      if (!range) {
+        return { success: false, error: 'Invalid cell range' };
+      }
 
-      for (let row = startRow; row <= endRow; row++) {
-        for (let col = startCol; col <= endCol; col++) {
+      for (let row = range.start.row; row <= range.end.row; row++) {
+        for (let col = range.start.column; col <= range.end.column; col++) {
           const cell = worksheet.getCell(row, col);
           const cellValue = cell.value;
           if (cellValue === null || cellValue === undefined || cellValue === '') {
@@ -528,18 +555,25 @@ export class ExcelAccounting {
         return { success: false, error: `Worksheet "${worksheetName}" not found` };
       }
 
-      const currentData = this.getRangeData(worksheet, currentValueRange.match(/^([A-Z]+\d+):([A-Z]+\d+)$/)![1], currentValueRange.match(/^([A-Z]+\d+):([A-Z]+\d+)$/)![2]);
-      const previousData = this.getRangeData(worksheet, previousValueRange.match(/^([A-Z]+\d+):([A-Z]+\d+)$/)![1], previousValueRange.match(/^([A-Z]+\d+):([A-Z]+\d+)$/)![2]);
+      const curRange = parseCellRange(currentValueRange);
+      const prevRange = parseCellRange(previousValueRange);
+      if (!curRange || !prevRange) {
+        return { success: false, error: 'Invalid ranges or mismatched data' };
+      }
+
+      const currentData = this.getRangeData(worksheet, `${curRange.start.colLetter}${curRange.start.row}`, `${curRange.end.colLetter}${curRange.end.row}`);
+      const previousData = this.getRangeData(worksheet, `${prevRange.start.colLetter}${prevRange.start.row}`, `${prevRange.end.colLetter}${prevRange.end.row}`);
 
       if (!currentData || !previousData || currentData.length !== previousData.length) {
         return { success: false, error: 'Invalid ranges or mismatched data' };
       }
 
-      const currentColIndex = this.getColumnIndex(currentValueRange.match(/^([A-Z]+\d+)/)![1], currentValueRange.match(/^([A-Z]+\d+)/)![1].match(/^([A-Z]+)/)![1]);
-      const prevColIndex = this.getColumnIndex(previousValueRange.match(/^([A-Z]+\d+)/)![1], previousValueRange.match(/^([A-Z]+\d+)/)![1].match(/^([A-Z]+)/)![1]);
+      const currentColIndex = 0;
+      const prevColIndex = 0;
 
-      const outputCol = outputRange.match(/^([A-Z]+)/)![1];
-      const outputStartRow = parseInt(outputRange.match(/\d+/)![0], 10);
+      const outAddr = parseCellAddress(outputRange) ?? parseCellRange(outputRange)?.start;
+      const outputCol = outAddr ? outAddr.colLetter : (outputRange.match(/^([A-Za-z]+)/)?.[1]?.toUpperCase() ?? 'A');
+      const outputStartRow = outAddr ? outAddr.row : curRange.start.row;
 
       for (let i = 0; i < currentData.length; i++) {
         const current = typeof currentData[i][currentColIndex] === 'number' ? currentData[i][currentColIndex] as number : 0;
@@ -589,18 +623,25 @@ export class ExcelAccounting {
         return { success: false, error: `Worksheet "${worksheetName}" not found` };
       }
 
-      const budgetData = this.getRangeData(worksheet, budgetRange.match(/^([A-Z]+\d+):([A-Z]+\d+)$/)![1], budgetRange.match(/^([A-Z]+\d+):([A-Z]+\d+)$/)![2]);
-      const actualData = this.getRangeData(worksheet, actualRange.match(/^([A-Z]+\d+):([A-Z]+\d+)$/)![1], actualRange.match(/^([A-Z]+\d+):([A-Z]+\d+)$/)![2]);
+      const bRange = parseCellRange(budgetRange);
+      const aRange = parseCellRange(actualRange);
+      if (!bRange || !aRange) {
+        return { success: false, error: 'Invalid ranges or mismatched data' };
+      }
+
+      const budgetData = this.getRangeData(worksheet, `${bRange.start.colLetter}${bRange.start.row}`, `${bRange.end.colLetter}${bRange.end.row}`);
+      const actualData = this.getRangeData(worksheet, `${aRange.start.colLetter}${aRange.start.row}`, `${aRange.end.colLetter}${aRange.end.row}`);
 
       if (!budgetData || !actualData || budgetData.length !== actualData.length) {
         return { success: false, error: 'Invalid ranges or mismatched data' };
       }
 
-      const budgetColIndex = this.getColumnIndex(budgetRange.match(/^([A-Z]+\d+)/)![1], budgetRange.match(/^([A-Z]+\d+)/)![1].match(/^([A-Z]+)/)![1]);
-      const actualColIndex = this.getColumnIndex(actualRange.match(/^([A-Z]+\d+)/)![1], actualRange.match(/^([A-Z]+\d+)/)![1].match(/^([A-Z]+)/)![1]);
+      const budgetColIndex = 0;
+      const actualColIndex = 0;
 
-      const outputCol = outputRange.match(/^([A-Z]+)/)![1];
-      const outputStartRow = parseInt(outputRange.match(/\d+/)![0], 10);
+      const outAddr = parseCellAddress(outputRange) ?? parseCellRange(outputRange)?.start;
+      const outputCol = outAddr ? outAddr.colLetter : (outputRange.match(/^([A-Za-z]+)/)?.[1]?.toUpperCase() ?? 'A');
+      const outputStartRow = outAddr ? outAddr.row : bRange.start.row;
 
       for (let i = 0; i < budgetData.length; i++) {
         const budget = typeof budgetData[i][budgetColIndex] === 'number' ? budgetData[i][budgetColIndex] as number : 0;
@@ -652,8 +693,14 @@ export class ExcelAccounting {
         return { success: false, error: `Worksheet "${worksheetName}" not found` };
       }
 
-      const debitData = this.getRangeData(worksheet, debitRange.match(/^([A-Z]+\d+):([A-Z]+\d+)$/)![1], debitRange.match(/^([A-Z]+\d+):([A-Z]+\d+)$/)![2]);
-      const creditData = this.getRangeData(worksheet, creditRange.match(/^([A-Z]+\d+):([A-Z]+\d+)$/)![1], creditRange.match(/^([A-Z]+\d+):([A-Z]+\d+)$/)![2]);
+      const dRange = parseCellRange(debitRange);
+      const cRange = parseCellRange(creditRange);
+      if (!dRange || !cRange) {
+        return { success: false, error: 'Invalid debit or credit range' };
+      }
+
+      const debitData = this.getRangeData(worksheet, `${dRange.start.colLetter}${dRange.start.row}`, `${dRange.end.colLetter}${dRange.end.row}`);
+      const creditData = this.getRangeData(worksheet, `${cRange.start.colLetter}${cRange.start.row}`, `${cRange.end.colLetter}${cRange.end.row}`);
 
       if (!debitData || !creditData) {
         return { success: false, error: 'Invalid ranges' };
@@ -765,17 +812,15 @@ export class ExcelAccounting {
   // Helper Methods
   // ============================================
 
-  private getRangeData(worksheet: ExcelJS.Worksheet, startCell: string, endCell: string): (string | number | boolean | Date | null)[][] {
-    const startRow = parseInt(startCell.match(/\d+/)![0], 10);
-    const endRow = parseInt(endCell.match(/\d+/)![0], 10);
-    const startCol = this.columnToNumber(startCell.match(/^([A-Z]+)/)![1]);
-    const endCol = this.columnToNumber(endCell.match(/^([A-Z]+)/)![1]);
+  private getRangeData(worksheet: ExcelJS.Worksheet, startCell: string, endCell?: string): (string | number | boolean | Date | null)[][] {
+    const range = parseCellRange(startCell, endCell);
+    if (!range) return [];
 
     const data: (string | number | boolean | Date | null)[][] = [];
 
-    for (let row = startRow; row <= endRow; row++) {
+    for (let row = range.start.row; row <= range.end.row; row++) {
       const rowData: (string | number | boolean | Date | null)[] = [];
-      for (let col = startCol; col <= endCol; col++) {
+      for (let col = range.start.column; col <= range.end.column; col++) {
         const cell = worksheet.getCell(row, col);
         const cellValue = cell.value;
         if (cellValue !== undefined) {
@@ -791,7 +836,9 @@ export class ExcelAccounting {
   }
 
   private getColumnIndex(rangeStart: string, columnLetter: string): number {
-    return this.columnToNumber(columnLetter) - this.columnToNumber(rangeStart.match(/^([A-Z]+)/)![1]);
+    const addr = parseCellAddress(rangeStart);
+    const startCol = addr ? addr.column : this.columnToNumber(rangeStart.match(/^([A-Za-z]+)/)?.[1] ?? 'A');
+    return this.columnToNumber(columnLetter) - startCol;
   }
 
   private columnToNumber(column: string): number {
@@ -804,13 +851,11 @@ export class ExcelAccounting {
     endCell: string,
     format: Partial<ExcelJS.Style>
   ): void {
-    const startRow = parseInt(startCell.match(/\d+/)![0], 10);
-    const endRow = parseInt(endCell.match(/\d+/)![0], 10);
-    const startCol = this.columnToNumber(startCell.match(/^([A-Z]+)/)![1]);
-    const endCol = this.columnToNumber(endCell.match(/^([A-Z]+)/)![1]);
+    const range = parseCellRange(startCell, endCell);
+    if (!range) return;
 
-    for (let row = startRow; row <= endRow; row++) {
-      for (let col = startCol; col <= endCol; col++) {
+    for (let row = range.start.row; row <= range.end.row; row++) {
+      for (let col = range.start.column; col <= range.end.column; col++) {
         const cell = worksheet.getCell(row, col);
         Object.assign(cell, format);
       }

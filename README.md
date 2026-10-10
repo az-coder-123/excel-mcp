@@ -85,7 +85,7 @@ For detailed parameter references, see the [Tools Reference](docs/tools/README.m
 | `excel_get_workbook_context` | Get workbook context and state |
 | `excel_export_worksheet_to_new_file` | Export worksheet to a new Excel file |
 
-### Worksheet Operations
+### Worksheet Operations → [Detailed docs](docs/tools/worksheet-operations.md)
 
 | Tool | Description |
 |------|-------------|
@@ -94,8 +94,17 @@ For detailed parameter references, see the [Tools Reference](docs/tools/README.m
 | `excel_delete_worksheet` | Delete a worksheet |
 | `excel_rename_worksheet` | Rename a worksheet |
 | `excel_copy_worksheet` | Copy a worksheet |
+| `excel_insert_rows` | Insert rows at position |
+| `excel_delete_rows` | Delete rows from position |
+| `excel_insert_columns` | Insert columns at letter |
+| `excel_delete_columns` | Delete columns from letter |
+| `excel_merge_cells` | Merge a cell range |
+| `excel_unmerge_cells` | Unmerge cells |
+| `excel_add_table` | Add styled Excel table |
+| `excel_add_filter` | Add auto-filter to range |
+| `excel_remove_filter` | Remove auto-filter |
 
-### Cell Operations
+### Cell Operations → [Detailed docs](docs/tools/cell-operations.md)
 
 | Tool | Description |
 |------|-------------|
@@ -106,8 +115,11 @@ For detailed parameter references, see the [Tools Reference](docs/tools/README.m
 | `excel_get_cell_info` | Get detailed cell information (type, formula) |
 | `excel_copy_range` | Copy a cell range to another location |
 | `excel_find_replace` | Find and replace text |
+| `excel_sort_range` | Sort a range ascending/descending |
+| `excel_get_named_ranges` | List defined named ranges |
+| `excel_add_named_range` | Create a new named range |
 
-### Formatting → [Detailed docs](docs/tools/README.md#formatting)
+### Formatting & Styles → [Detailed docs](docs/tools/README.md#2-formatting--layout)
 
 | Tool | Category | Docs |
 |------|----------|------|
@@ -121,6 +133,7 @@ For detailed parameter references, see the [Tools Reference](docs/tools/README.m
 | `excel_apply_outline_border` | Borders | [→](docs/tools/borders.md) |
 | `excel_set_background_color` | Colors | [→](docs/tools/colors.md) |
 | `excel_set_font_color` | Colors | [→](docs/tools/colors.md) |
+| `excel_set_gradient_fill` | Colors | [→](docs/tools/colors.md) |
 | `excel_set_number_format` | Number Formats | [→](docs/tools/number-formats.md) |
 | `excel_apply_currency_format` | Number Formats | [→](docs/tools/number-formats.md) |
 | `excel_apply_percentage_format` | Number Formats | [→](docs/tools/number-formats.md) |
@@ -128,8 +141,72 @@ For detailed parameter references, see the [Tools Reference](docs/tools/README.m
 | `excel_apply_header_style` | Style Presets | [→](docs/tools/style-presets.md) |
 | `excel_apply_title_style` | Style Presets | [→](docs/tools/style-presets.md) |
 | `excel_apply_table_style` | Style Presets | [→](docs/tools/style-presets.md) |
+| `excel_auto_fit_columns` | Layout & Dimensions | [→](docs/tools/layout-and-validation.md) |
+| `excel_set_column_width` | Layout & Dimensions | [→](docs/tools/layout-and-validation.md) |
+| `excel_set_row_height` | Layout & Dimensions | [→](docs/tools/layout-and-validation.md) |
+| `excel_freeze_panes` | Layout & Dimensions | [→](docs/tools/layout-and-validation.md) |
+| `excel_set_print_area` | Layout & Dimensions | [→](docs/tools/layout-and-validation.md) |
+| `excel_add_header_footer` | Layout & Dimensions | [→](docs/tools/layout-and-validation.md) |
+| `excel_add_comment` | Notes & Links | [→](docs/tools/layout-and-validation.md) |
+| `excel_remove_comment` | Notes & Links | [→](docs/tools/layout-and-validation.md) |
+| `excel_add_hyperlink` | Notes & Links | [→](docs/tools/layout-and-validation.md) |
+| `excel_add_data_validation` | Validation | [→](docs/tools/layout-and-validation.md) |
+| `excel_format_worksheet` | Batch Formatting | [→](docs/tools/layout-and-validation.md) |
+| `excel_batch_format` | Batch Formatting | [→](docs/tools/layout-and-validation.md) |
 
-### Accounting & Finance → [Detailed docs](docs/tools/README.md#accounting--finance)
+### Data Utilities & Analytics → [Detailed docs](docs/tools/data-utilities.md)
+
+| Tool | Category | Docs |
+|------|----------|------|
+| `excel_import_csv` | CSV Transfer | [→](docs/tools/data-utilities.md) |
+| `excel_export_csv` | CSV Transfer | [→](docs/tools/data-utilities.md) |
+| `excel_find_duplicates` | Duplicates | [→](docs/tools/data-utilities.md) |
+| `excel_count_unique_values` | Duplicates | [→](docs/tools/data-utilities.md) |
+| `excel_highlight_duplicates` | Duplicates | [→](docs/tools/data-utilities.md) |
+| `excel_remove_duplicates` | Duplicates | [→](docs/tools/data-utilities.md) |
+| `excel_text_to_columns` | Transformations | [→](docs/tools/data-utilities.md) |
+| `excel_flash_fill` | Transformations | [→](docs/tools/data-utilities.md) |
+| `excel_vlookup` | Lookups | [→](docs/tools/data-utilities.md) |
+| `excel_index_match` | Lookups | [→](docs/tools/data-utilities.md) |
+| `excel_create_pivot_table` | Pivot Tables | [→](docs/tools/data-utilities.md) |
+| `excel_get_column_stats` | Analytics | [→](docs/tools/data-utilities.md) |
+| `excel_filter_data` | Analytics | [→](docs/tools/data-utilities.md) |
+| `excel_group_aggregate` | Analytics | [→](docs/tools/data-utilities.md) |
+| `excel_profile_data` | Analytics | [→](docs/tools/data-utilities.md) |
+| `excel_search` | Search | [→](docs/tools/data-utilities.md) |
+| `excel_compare_ranges` | Range Comparison | [→](docs/tools/data-utilities.md) |
+
+### Visualizations & Protection → [Charts](docs/tools/charts-and-visuals.md) | [Protection](docs/tools/protection.md)
+
+| Tool | Category | Docs |
+|------|----------|------|
+| `excel_add_chart` | Charts | [→](docs/tools/charts-and-visuals.md) |
+| `excel_update_chart` | Charts | [→](docs/tools/charts-and-visuals.md) |
+| `excel_delete_chart` | Charts | [→](docs/tools/charts-and-visuals.md) |
+| `excel_list_charts` | Charts | [→](docs/tools/charts-and-visuals.md) |
+| `excel_add_conditional_format` | Conditional Formats | [→](docs/tools/charts-and-visuals.md) |
+| `excel_remove_conditional_format` | Conditional Formats | [→](docs/tools/charts-and-visuals.md) |
+| `excel_add_data_bar` | Visual Rules | [→](docs/tools/charts-and-visuals.md) |
+| `excel_add_color_scale` | Visual Rules | [→](docs/tools/charts-and-visuals.md) |
+| `excel_add_icon_set` | Visual Rules | [→](docs/tools/charts-and-visuals.md) |
+| `excel_protect_worksheet` | Protection | [→](docs/tools/protection.md) |
+| `excel_unprotect_worksheet` | Protection | [→](docs/tools/protection.md) |
+| `excel_protect_cells` | Protection | [→](docs/tools/protection.md) |
+
+### Formula Engineering & Auditing → [Detailed docs](docs/tools/formula-analysis.md)
+
+| Tool | Category | Docs |
+|------|----------|------|
+| `excel_list_formulas` | Inventory | [→](docs/tools/formula-analysis.md) |
+| `excel_analyze_formula` | Structure Analysis | [→](docs/tools/formula-analysis.md) |
+| `excel_get_dependencies` | Dependencies | [→](docs/tools/formula-analysis.md) |
+| `excel_trace_precedents` | Precedent Tracing | [→](docs/tools/formula-analysis.md) |
+| `excel_trace_dependents` | Dependent Tracing | [→](docs/tools/formula-analysis.md) |
+| `excel_check_circular` | Cycle Detection | [→](docs/tools/formula-analysis.md) |
+| `excel_explain_formula` | Multi-language Explanation | [→](docs/tools/formula-analysis.md) |
+| `excel_audit_formulas` | Automated Audit | [→](docs/tools/formula-analysis.md) |
+
+### Accounting & Finance → [Detailed docs](docs/tools/README.md#6-accounting--corporate-finance)
 
 | Tool | Category | Docs |
 |------|----------|------|

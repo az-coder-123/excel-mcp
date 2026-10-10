@@ -192,7 +192,7 @@ export class FormulaAnalysisHandlers {
       // Check all cells for circular references
       const circularCells: Array<{ cell: string; chain: string[] }> = [];
       
-      for (const [cell] of graph.keys()) {
+      for (const cell of graph.keys()) {
         const check = this.formulaAnalyzer['checkCircularReferences'](graph, cell);
         if (check.isCircular && check.chain) {
           circularCells.push({ cell, chain: check.chain });

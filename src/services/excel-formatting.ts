@@ -466,7 +466,7 @@ export class ExcelFormatting {
     filename: string,
     worksheetName: string,
     startCell: string,
-    endCell: string | undefined
+    endCell?: string
   ): Promise<OperationResult<void>> {
     return this.setAlignment(filename, worksheetName, startCell, endCell, {
       horizontal: 'center',
@@ -1121,12 +1121,26 @@ export class ExcelFormatting {
         return { success: false, error: `Worksheet "${worksheetName}" not found` };
       }
 
-      // ExcelJS doesn't have autoFit, so we set a reasonable default width
+      // Auto-fit column widths based on maximum cell content length
       const start = startColumn ? this.columnLetterToNumber(startColumn) : 1;
-      const end = endColumn ? this.columnLetterToNumber(endColumn) : worksheet.columnCount;
+      const end = endColumn ? this.columnLetterToNumber(endColumn) : Math.max(worksheet.columnCount, 1);
 
       for (let col = start; col <= end; col++) {
-        worksheet.getColumn(col).width = 15;
+        let maxLen = 10;
+        const column = worksheet.getColumn(col);
+        column.eachCell({ includeEmpty: false }, (cell) => {
+          const val = cell.value;
+          if (val !== null && val !== undefined) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const str = typeof val === 'object' && val !== null && 'text' in (val as any)
+              ? String((val as any).text)
+              : String(val);
+            if (str.length > maxLen) {
+              maxLen = str.length;
+            }
+          }
+        });
+        column.width = Math.min(Math.max(maxLen + 3, 12), 60);
       }
 
       return { success: true };

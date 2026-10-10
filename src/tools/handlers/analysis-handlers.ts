@@ -4,6 +4,12 @@
  */
 
 import ExcelJS from 'exceljs';
+import {
+  columnLetterToNumber,
+  numberToColumn,
+  parseCellAddress,
+  parseCellRange,
+} from '../../utils/excel-coords.js';
 
 interface FilterCondition {
   column: string;
@@ -43,7 +49,7 @@ export class AnalysisHandlers {
         return { success: false, error: `Worksheet "${worksheet}" not found` };
       }
 
-      const colIndex = column.charCodeAt(0) - 65; // A=0, B=1, etc.
+      const colIndex = columnLetterToNumber(column) - 1;
       const startRow = hasHeader ? 2 : 1;
       
       const values: string[] = [];
@@ -125,12 +131,11 @@ export class AnalysisHandlers {
       }
 
       // Parse range
-      const startColMatch = startCell.match(/[A-Z]+/);
-      const startCol = startColMatch?.[0] ? startColMatch[0].charCodeAt(0) - 65 : 0;
-      const startRow = parseInt(startCell.match(/\d+/)?.[0] || '1');
-      const endColMatch = endCell.match(/[A-Z]+/);
-      const endCol = endColMatch?.[0] ? endColMatch[0].charCodeAt(0) - 65 : 0;
-      const endRow = parseInt(endCell.match(/\d+/)?.[0] || '1');
+      const range = parseCellRange(startCell, endCell);
+      const startCol = range ? range.start.column - 1 : 0;
+      const startRow = range ? range.start.row : parseInt(startCell.match(/\d+/)?.[0] || '1', 10);
+      const endCol = range ? range.end.column - 1 : 0;
+      const endRow = range ? range.end.row : parseInt(endCell.match(/\d+/)?.[0] || '1', 10);
 
       const headerRow: string[] = [];
       if (hasHeader) {
@@ -148,7 +153,7 @@ export class AnalysisHandlers {
           let matchesAllFilters = true;
 
           for (const filter of filters) {
-            const filterCol = filter.column.charCodeAt(0) - 65;
+            const filterCol = columnLetterToNumber(filter.column) - 1;
             const cellValue = row.getCell(filterCol + 1).value;
             const cellStr = cellValue !== null && cellValue !== undefined ? String(cellValue) : '';
             const filterValue = filter.value || '';
@@ -197,8 +202,8 @@ export class AnalysisHandlers {
     startCell: string,
     endCell: string,
     groupByColumn: string,
-    aggregateColumn: string,
-    operation: string,
+    aggregateColumn?: string,
+    operation: string = 'count',
     hasHeader: boolean = true
   ) {
     try {
@@ -212,11 +217,12 @@ export class AnalysisHandlers {
         return { success: false, error: `Worksheet "${worksheet}" not found` };
       }
 
-      const groupColIndex = groupByColumn.charCodeAt(0) - 65;
-      const aggColIndex = aggregateColumn ? aggregateColumn.charCodeAt(0) - 65 : -1;
+      const groupColIndex = columnLetterToNumber(groupByColumn) - 1;
+      const aggColIndex = aggregateColumn ? columnLetterToNumber(aggregateColumn) - 1 : -1;
       
-      const startRow = parseInt(startCell.match(/\d+/)?.[0] || '1');
-      const endRow = parseInt(endCell.match(/\d+/)?.[0] || '1');
+      const range = parseCellRange(startCell, endCell);
+      const startRow = range ? range.start.row : parseInt(startCell.match(/\d+/)?.[0] || '1', 10);
+      const endRow = range ? range.end.row : parseInt(endCell.match(/\d+/)?.[0] || '1', 10);
       const dataStartRow = hasHeader ? startRow + 1 : startRow;
 
       const groups = new Map<string, unknown[]>();
@@ -314,17 +320,16 @@ export class AnalysisHandlers {
         return { success: false, error: `Worksheet "${worksheet}" not found` };
       }
 
-      const startColMatch = startCell.match(/[A-Z]+/);
-      const startCol = startColMatch?.[0] ? startColMatch[0].charCodeAt(0) - 65 : 0;
-      const startRow = parseInt(startCell.match(/\d+/)?.[0] || '1');
-      const endColMatch = endCell.match(/[A-Z]+/);
-      const endCol = endColMatch?.[0] ? endColMatch[0].charCodeAt(0) - 65 : 0;
-      const endRow = parseInt(endCell.match(/\d+/)?.[0] || '1');
+      const range = parseCellRange(startCell, endCell);
+      const startCol = range ? range.start.column - 1 : 0;
+      const startRow = range ? range.start.row : parseInt(startCell.match(/\d+/)?.[0] || '1', 10);
+      const endCol = range ? range.end.column - 1 : 0;
+      const endRow = range ? range.end.row : parseInt(endCell.match(/\d+/)?.[0] || '1', 10);
 
       const columnProfiles: Record<string, unknown>[] = [];
 
       for (let col = startCol; col <= endCol; col++) {
-        const colLetter = String.fromCharCode(65 + col);
+        const colLetter = numberToColumn(col + 1);
         const values: string[] = [];
         const types = new Set<string>();
         let nullCount = 0;
@@ -415,12 +420,12 @@ export class AnalysisHandlers {
       let endCol = 26; // Default to all columns (A-Z)
 
       if (columnRange) {
-        const match = columnRange.match(/^([A-Z]+):([A-Z]+)$/);
+        const match = columnRange.match(/^([A-Za-z]+):([A-Za-z]+)$/);
         if (match && match[1] && match[2]) {
-          startCol = match[1].charCodeAt(0) - 65;
-          endCol = match[2].charCodeAt(0) - 65;
+          startCol = columnLetterToNumber(match[1]) - 1;
+          endCol = columnLetterToNumber(match[2]) - 1;
         } else {
-          startCol = columnRange.charCodeAt(0) - 65;
+          startCol = columnLetterToNumber(columnRange) - 1;
           endCol = startCol;
         }
       }
@@ -507,10 +512,11 @@ export class AnalysisHandlers {
 
       // Parse ranges
       const parseCell = (cell: string) => {
-        const colMatch = cell.match(/[A-Z]+/);
-        const col = colMatch?.[0] ? colMatch[0].charCodeAt(0) - 65 : 0;
-        const row = parseInt(cell.match(/\d+/)?.[0] || '1');
-        return { col, row };
+        const parsed = parseCellAddress(cell);
+        return {
+          col: parsed ? parsed.column - 1 : 0,
+          row: parsed ? parsed.row : 1,
+        };
       };
 
       const r1Start = parseCell(range1Start);

@@ -275,7 +275,13 @@ export class ExcelCellOperations {
             }
 
             if (shouldReplace) {
-              cell.value = replaceText;
+              if (matchEntireCell) {
+                cell.value = replaceText;
+              } else {
+                const escaped = findText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                const flags = matchCase ? 'g' : 'gi';
+                cell.value = cell.value.replace(new RegExp(escaped, flags), replaceText);
+              }
               count++;
             }
           }
@@ -371,9 +377,9 @@ export class ExcelCellOperations {
       }
 
       const names = workbook.definedNames?.model || [];
-      const result = names.map((n: { name: string; address?: string }) => ({
+      const result = names.map((n: { name: string; ranges?: string[]; address?: string }) => ({
         name: n.name,
-        ref: n.address || '',
+        ref: (n.ranges && n.ranges.length > 0) ? n.ranges.join(', ') : (n.address || ''),
       }));
 
       return { success: true, data: result };
@@ -404,7 +410,7 @@ export class ExcelCellOperations {
         return { success: false, error: `Workbook "${filename}" not opened` };
       }
 
-      workbook.definedNames?.add(name, `'${worksheetName}'!${startCell}:${endCell}`);
+      workbook.definedNames?.add(`${worksheetName}!${startCell}:${endCell}`, name);
 
       return { success: true };
     } catch (error) {

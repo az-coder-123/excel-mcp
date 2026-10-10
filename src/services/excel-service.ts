@@ -265,7 +265,7 @@ export class ExcelService {
     return this.formatting.setAlignment(filename, worksheetName, startCell, endCell, options as any);
   }
 
-  public async centerText(filename: string, worksheetName: string, startCell: string, endCell: string | undefined): Promise<OperationResult<void>> {
+  public async centerText(filename: string, worksheetName: string, startCell: string, endCell?: string): Promise<OperationResult<void>> {
     return this.formatting.centerText(filename, worksheetName, startCell, endCell);
   }
 

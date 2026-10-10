@@ -7,6 +7,7 @@ import ExcelJS from 'exceljs';
 import { WorksheetInfo, OperationResult } from '../types/index.js';
 import { PermissionChecker } from '../security/permission-checker.js';
 import { Logger } from '../utils/logger.js';
+import { columnLetterToNumber, parseCellRange } from '../utils/excel-coords.js';
 
 export class ExcelStructureOperations {
   private permissionChecker: PermissionChecker;
@@ -111,18 +112,13 @@ export class ExcelStructureOperations {
         return { success: false, error: `Worksheet "${worksheetName}" not found` };
       }
 
-      const parse = (addr: string) => {
-        const match = addr.match(/^([A-Z]+)(\d+)$/i);
-        if (!match) return { row: 1, col: 1 };
-        let col = 0;
-        for (const ch of match[1].toUpperCase()) col = col * 26 + (ch.charCodeAt(0) - 64);
-        return { row: parseInt(match[2], 10), col };
-      };
-      const a = parse(startCell);
-      const b = parse(endCell);
+      const range = parseCellRange(startCell, endCell);
+      if (!range) {
+        return { success: false, error: `Invalid cell range "${startCell}:${endCell}"` };
+      }
 
-      for (let r = Math.min(a.row, b.row); r <= Math.max(a.row, b.row); r++) {
-        for (let c = Math.min(a.col, b.col); c <= Math.max(a.col, b.col); c++) {
+      for (let r = range.start.row; r <= range.end.row; r++) {
+        for (let c = range.start.column; c <= range.end.column; c++) {
           const cell = worksheet.getCell(r, c);
           cell.protection = { ...cell.protection, locked };
         }
@@ -195,6 +191,14 @@ export class ExcelStructureOperations {
         return { success: false, error: `Workbook "${filename}" not opened` };
       }
 
+      if (!worksheetName || !worksheetName.trim()) {
+        return { success: false, error: 'Worksheet name cannot be empty' };
+      }
+
+      if (workbook.getWorksheet(worksheetName)) {
+        return { success: false, error: `Worksheet "${worksheetName}" already exists` };
+      }
+
       const worksheet = workbook.addWorksheet(worksheetName);
 
       return {
@@ -231,6 +235,10 @@ export class ExcelStructureOperations {
         return { success: false, error: `Workbook "${filename}" not opened` };
       }
 
+      if (workbook.worksheets.length <= 1) {
+        return { success: false, error: 'Cannot delete the only worksheet in the workbook' };
+      }
+
       const worksheet = workbook.getWorksheet(worksheetName);
       if (!worksheet) {
         return { success: false, error: `Worksheet "${worksheetName}" not found` };
@@ -264,9 +272,17 @@ export class ExcelStructureOperations {
         return { success: false, error: `Workbook "${filename}" not opened` };
       }
 
+      if (!newName || !newName.trim()) {
+        return { success: false, error: 'Worksheet name cannot be empty' };
+      }
+
       const worksheet = workbook.getWorksheet(oldName);
       if (!worksheet) {
         return { success: false, error: `Worksheet "${oldName}" not found` };
+      }
+
+      if (oldName !== newName && workbook.getWorksheet(newName)) {
+        return { success: false, error: `Worksheet "${newName}" already exists` };
       }
 
       worksheet.name = newName;
@@ -295,6 +311,14 @@ export class ExcelStructureOperations {
       const workbook = this.activeWorkbooks.get(filename);
       if (!workbook) {
         return { success: false, error: `Workbook "${filename}" not opened` };
+      }
+
+      if (!targetName || !targetName.trim()) {
+        return { success: false, error: 'Target worksheet name cannot be empty' };
+      }
+
+      if (workbook.getWorksheet(targetName)) {
+        return { success: false, error: `Worksheet "${targetName}" already exists` };
       }
 
       const worksheet = workbook.getWorksheet(sourceWorksheet);
@@ -339,6 +363,13 @@ export class ExcelStructureOperations {
         return { success: false, error: `Workbook "${filename}" not opened` };
       }
 
+      if (startRow <= 0) {
+        return { success: false, error: `Start row must be positive (got ${startRow})` };
+      }
+      if (count <= 0) {
+        return { success: false, error: `Count must be greater than 0 (got ${count})` };
+      }
+
       const worksheet = workbook.getWorksheet(worksheetName);
       if (!worksheet) {
         return { success: false, error: `Worksheet "${worksheetName}" not found` };
@@ -373,12 +404,20 @@ export class ExcelStructureOperations {
         return { success: false, error: `Workbook "${filename}" not opened` };
       }
 
+      if (count <= 0) {
+        return { success: false, error: `Count must be greater than 0 (got ${count})` };
+      }
+
+      const colIndex = columnLetterToNumber(startColumn);
+      if (colIndex <= 0) {
+        return { success: false, error: `Invalid column letter "${startColumn}"` };
+      }
+
       const worksheet = workbook.getWorksheet(worksheetName);
       if (!worksheet) {
         return { success: false, error: `Worksheet "${worksheetName}" not found` };
       }
 
-      const colIndex = this.columnLetterToNumber(startColumn);
       worksheet.spliceColumns(colIndex, 0, ...Array(count).fill([]));
 
       return { success: true };
@@ -406,6 +445,13 @@ export class ExcelStructureOperations {
       const workbook = this.activeWorkbooks.get(filename);
       if (!workbook) {
         return { success: false, error: `Workbook "${filename}" not opened` };
+      }
+
+      if (startRow <= 0) {
+        return { success: false, error: `Start row must be positive (got ${startRow})` };
+      }
+      if (count <= 0) {
+        return { success: false, error: `Count must be greater than 0 (got ${count})` };
       }
 
       const worksheet = workbook.getWorksheet(worksheetName);
@@ -442,12 +488,20 @@ export class ExcelStructureOperations {
         return { success: false, error: `Workbook "${filename}" not opened` };
       }
 
+      if (count <= 0) {
+        return { success: false, error: `Count must be greater than 0 (got ${count})` };
+      }
+
+      const colIndex = columnLetterToNumber(startColumn);
+      if (colIndex <= 0) {
+        return { success: false, error: `Invalid column letter "${startColumn}"` };
+      }
+
       const worksheet = workbook.getWorksheet(worksheetName);
       if (!worksheet) {
         return { success: false, error: `Worksheet "${worksheetName}" not found` };
       }
 
-      const colIndex = this.columnLetterToNumber(startColumn);
       worksheet.spliceColumns(colIndex, count);
 
       return { success: true };
@@ -480,6 +534,11 @@ export class ExcelStructureOperations {
       const worksheet = workbook.getWorksheet(worksheetName);
       if (!worksheet) {
         return { success: false, error: `Worksheet "${worksheetName}" not found` };
+      }
+
+      const range = parseCellRange(startCell, endCell);
+      if (!range) {
+        return { success: false, error: `Invalid cell range "${startCell}:${endCell}"` };
       }
 
       worksheet.mergeCells(`${startCell}:${endCell}`);
@@ -554,11 +613,42 @@ export class ExcelStructureOperations {
         return { success: false, error: `Worksheet "${worksheetName}" not found` };
       }
 
+      if (!tableName || !tableName.trim()) {
+        return { success: false, error: 'Table name cannot be empty' };
+      }
+
+      const range = parseCellRange(startCell, endCell);
+      if (!range) {
+        return { success: false, error: `Invalid cell range "${startCell}:${endCell}"` };
+      }
+
+      const columns: Array<{ name: string; filterButton?: boolean }> = [];
+      const headerRow = worksheet.getRow(range.start.row);
+      for (let c = range.start.column; c <= range.end.column; c++) {
+        const val = headerRow.getCell(c).value;
+        const colName = val !== null && val !== undefined && String(val).trim() !== ''
+          ? String(val).trim()
+          : `Column${c - range.start.column + 1}`;
+        columns.push({ name: colName, filterButton: true });
+      }
+
+      const rows: unknown[][] = [];
+      for (let r = range.start.row + 1; r <= range.end.row; r++) {
+        const rowData: unknown[] = [];
+        const row = worksheet.getRow(r);
+        for (let c = range.start.column; c <= range.end.column; c++) {
+          rowData.push(row.getCell(c).value ?? '');
+        }
+        rows.push(rowData);
+      }
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const tableConfig: any = {
         name: tableName,
         ref: `${startCell}:${endCell}`,
         headerRow: true,
+        columns,
+        rows,
       };
 
       if (style) {
@@ -597,6 +687,11 @@ export class ExcelStructureOperations {
       const worksheet = workbook.getWorksheet(worksheetName);
       if (!worksheet) {
         return { success: false, error: `Worksheet "${worksheetName}" not found` };
+      }
+
+      const range = parseCellRange(startCell, endCell);
+      if (!range) {
+        return { success: false, error: `Invalid cell range "${startCell}:${endCell}"` };
       }
 
       worksheet.autoFilter = `${startCell}:${endCell}`;
@@ -656,13 +751,5 @@ export class ExcelStructureOperations {
       const message = error instanceof Error ? error.message : 'Unknown error';
       return { success: false, error: message };
     }
-  }
-
-  private columnLetterToNumber(column: string): number {
-    let result = 0;
-    for (let i = 0; i < column.length; i++) {
-      result = result * 26 + (column.charCodeAt(i) - 64);
-    }
-    return result;
   }
 }
